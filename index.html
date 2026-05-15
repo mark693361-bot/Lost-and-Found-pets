@@ -1,544 +1,862 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Whac-a-Mole V2</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost Pet Finder</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive;
-      background: linear-gradient(to bottom, #5BC8F5 0%, #a8dff7 42%, #5DBB63 42%, #3fa34d 100%);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #fff8f2;
+      color: #2c1a0e;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 20px 20px 40px;
-      /* Hammer cursor */
-      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect x='13' y='16' width='6' height='18' rx='2' fill='%238B4513'/%3E%3Crect x='4' y='2' width='24' height='15' rx='3' fill='%23555'/%3E%3Crect x='4' y='2' width='24' height='7' rx='3' fill='%23888'/%3E%3C/svg%3E") 16 16, crosshair;
     }
 
-    /* Decorations */
-    .sky-deco {
+    header {
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
+      padding: 20px 32px;
+      text-align: center;
+      box-shadow: 0 3px 10px rgba(232, 98, 42, 0.3);
+    }
+
+    header h1 { font-size: 1.9rem; letter-spacing: 1px; }
+
+    /* ── Nav ── */
+    nav {
+      background: white;
+      border-bottom: 2px solid #f0c8a0;
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      padding: 10px 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .nav-btn {
+      background: none;
+      border: 2px solid transparent;
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      font-weight: 600;
+      color: #7a5030;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .nav-btn:hover { background: #fff0e6; color: #e8622a; }
+
+    #back-btn {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      margin-right: auto;
+    }
+
+    #back-btn.visible { display: flex; }
+
+    .nav-btn.active {
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 3px 0 #b84a18;
+    }
+
+    .nav-btn .badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #e53935;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+
+    /* ── Pages ── */
+    main { flex: 1; }
+
+    .page {
+      display: none;
+      max-width: 760px;
+      margin: 32px auto;
+      padding: 0 16px 40px;
+    }
+
+    .page.active { display: block; }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      border-left: 5px solid #e8622a;
+    }
+
+    h2 { color: #e8622a; font-size: 1.25rem; margin-bottom: 20px; }
+
+    form { display: flex; flex-direction: column; gap: 16px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #5a3520;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #f0c8a0;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: #fffaf6;
+      color: #2c1a0e;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #e8622a;
+      background: white;
+    }
+
+    input.err, select.err, textarea.err { border-color: #e53935; }
+    .error-msg { color: #e53935; font-size: 0.8rem; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      align-self: flex-start;
+      box-shadow: 0 4px 0 #b84a18;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 #b84a18; }
+    .btn-primary:active { transform: translateY(2px);  box-shadow: 0 2px 0 #b84a18; }
+
+    .btn-green {
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #2e7d32;
+      transition: transform 0.1s, box-shadow 0.1s;
+      width: 100%;
+      margin-top: auto;
+    }
+
+    .btn-green:hover  { transform: translateY(-1px); box-shadow: 0 4px 0 #2e7d32; }
+    .btn-green:active { transform: translateY(2px);  box-shadow: 0 1px 0 #2e7d32; }
+
+    /* ── Pet grid ── */
+    .pet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 16px;
+    }
+
+    .pet-card {
+      background: linear-gradient(135deg, #fde8d8 0%, #fce8b4 100%);
+      border-radius: 12px;
+      border: 2px solid #f0a870;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pc-emoji  { font-size: 2.5rem; line-height: 1; }
+    .pc-name   { font-weight: 700; font-size: 1.05rem; }
+    .pc-meta   { font-size: 0.78rem; color: #7a5030; }
+    .pc-detail { font-size: 0.85rem; color: #5a3520; flex: 1; margin-bottom: 8px; }
+
+    /* ── Notifications ── */
+    .notif-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .notif-item {
+      background: #fff8f2;
+      border: 1px solid #f0c8a0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .notif-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .notif-msg  { font-size: 0.9rem; }
+    .notif-time { font-size: 0.75rem; color: #a07050; margin-top: 3px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: #a07050;
+    }
+
+    .empty-icon { font-size: 3rem; margin-bottom: 10px; }
+
+    /* ── Toast ── */
+    .toast {
       position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 42%;
+      bottom: 24px;
+      right: 24px;
+      background: #2c1a0e;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      max-width: 300px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      z-index: 1000;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: transform 0.3s, opacity 0.3s;
       pointer-events: none;
-      z-index: 0;
+    }
+
+    .toast.show    { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left: 4px solid #4caf50; }
+    .toast.info    { border-left: 4px solid #e8622a; }
+
+    /* ── Action cards (5×6 cm) ── */
+    .action-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 28px 16px;
+      background: #fff8f2;
+      border-bottom: 2px solid #f0c8a0;
+    }
+
+    .action-card {
+      width: 5cm;
+      height: 6cm;
+      background: linear-gradient(145deg, #ffffff 0%, #fff0e6 100%);
+      border: 2px solid #f0c8a0;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #d4a070;
+      transition: transform 0.15s, box-shadow 0.15s;
+      text-align: center;
+      padding: 16px;
+      font-family: inherit;
+      color: #2c1a0e;
+      position: relative;
       overflow: hidden;
     }
-    .sun {
-      position: absolute;
-      top: 18px; right: 60px;
-      width: 70px; height: 70px;
-      background: radial-gradient(circle, #FFE566 40%, #FFD700 100%);
-      border-radius: 50%;
-      box-shadow: 0 0 0 10px rgba(255,220,0,0.2), 0 0 0 20px rgba(255,220,0,0.1);
-    }
-    .cloud {
-      position: absolute;
-      background: white;
-      border-radius: 50px;
-      opacity: 0.9;
-    }
-    .cloud::before, .cloud::after {
+
+    .action-card::before {
       content: '';
       position: absolute;
-      background: white;
-      border-radius: 50%;
-    }
-    .c1 { width: 90px; height: 28px; top: 30px; left: 60px; }
-    .c1::before { width: 40px; height: 40px; top: -18px; left: 10px; }
-    .c1::after  { width: 30px; height: 30px; top: -12px; left: 40px; }
-    .c2 { width: 70px; height: 22px; top: 60px; left: 220px; }
-    .c2::before { width: 30px; height: 30px; top: -15px; left: 8px; }
-    .c2::after  { width: 24px; height: 24px; top: -10px; left: 32px; }
-
-    h1 {
-      position: relative;
-      z-index: 1;
-      color: #fff;
-      font-size: 2.8rem;
-      text-shadow: 3px 3px 0 #1a6e28, -2px 2px 0 #1a6e28, 2px -2px 0 #1a6e28;
-      margin-bottom: 18px;
-      letter-spacing: 2px;
+      inset: 0;
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      opacity: 0;
+      transition: opacity 0.2s;
+      border-radius: 14px;
     }
 
-    /* HUD */
-    .hud {
+    .action-card:hover { transform: translateY(-3px); box-shadow: 0 7px 0 #d4a070; }
+    .action-card:hover::before { opacity: 0.07; }
+    .action-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #d4a070; }
+
+    .action-card-icon { font-size: 2.4rem; line-height: 1; position: relative; }
+    .action-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e8622a;
       position: relative;
-      z-index: 1;
-      display: flex;
-      gap: 16px;
-      margin-bottom: 20px;
     }
-    .hud-box {
-      background: rgba(255,255,255,0.95);
-      border: 4px solid #2a6e1a;
-      border-radius: 18px;
-      padding: 8px 22px;
-      text-align: center;
-      min-width: 100px;
-      box-shadow: 0 5px 0 #1a5010;
+    .action-card-desc {
+      font-size: 0.75rem;
+      color: #7a5030;
+      line-height: 1.4;
+      position: relative;
     }
-    .hud-box .label {
+
+    /* ── Animal species block ── */
+    .species-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
       font-size: 0.7rem;
-      font-weight: bold;
-      color: #2a6e1a;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .hud-box .value {
-      font-size: 1.9rem;
-      font-weight: bold;
-      color: #1a1a1a;
-    }
-    #timer.urgent {
-      color: #e63946;
-      animation: pulse 0.5s ease-in-out infinite alternate;
-    }
-    @keyframes pulse {
-      from { transform: scale(1); }
-      to   { transform: scale(1.2); }
     }
 
-    /* Grid */
-    .grid {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
+    /* ── Reference guide page ── */
+    .guide-section {
       margin-bottom: 24px;
     }
 
-    /* Hole */
-    .hole-wrap {
-      position: relative;
-      width: 130px;
-      height: 130px;
-    }
-    .hole {
-      position: absolute;
-      top: 15px;
-      left: 0;
-      width: 130px;
-      height: 90px;
-      border-radius: 50%;
-      background: radial-gradient(ellipse at 50% 35%, #3b1600 0%, #100600 80%);
-      overflow: hidden;
-      box-shadow:
-        0 6px 0 6px #9c6c1e,
-        0 11px 0 9px #7a520e,
-        0 16px 0 10px #5a3c0c,
-        inset 0 12px 22px rgba(0,0,0,0.65);
-    }
-    .mole-container {
-      position: absolute;
-      bottom: -96px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 92px;
-      height: 96px;
-      transition: bottom 0.13s ease-out;
-      cursor: pointer;
-      pointer-events: none; /* only clickable when active */
-    }
-    .mole-container svg {
-      pointer-events: none;
-    }
-    .hole.active .mole-container {
-      bottom: 0;
-      pointer-events: auto;
+    .guide-section h3 {
+      font-size: 1rem;
+      color: #e8622a;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #f0c8a0;
     }
 
-    /* Floating hit text */
-    .hit-text {
-      position: fixed;
-      pointer-events: none;
-      z-index: 500;
-      font-size: 1.9rem;
-      font-weight: bold;
-      color: #FFD700;
-      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
-      animation: floatUp 0.75s ease-out forwards;
-      white-space: nowrap;
-    }
-    @keyframes floatUp {
-      0%   { transform: translate(-50%, -50%) scale(0.6) rotate(-8deg); opacity: 1; }
-      50%  { transform: translate(-50%, -90%) scale(1.1) rotate(6deg);  opacity: 1; }
-      100% { transform: translate(-50%, -160%) scale(0.8) rotate(-4deg); opacity: 0; }
+    .guide-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
-    /* Star burst on hit */
-    .hit-star {
-      position: fixed;
-      pointer-events: none;
-      z-index: 499;
-      font-size: 2.2rem;
-      animation: starPop 0.55s ease-out forwards;
-    }
-    @keyframes starPop {
-      0%   { transform: translate(-50%,-50%) scale(0.2); opacity: 1; }
-      40%  { transform: translate(-50%,-50%) scale(1.4); opacity: 1; }
-      100% { transform: translate(-50%,-50%) scale(1.0); opacity: 0; }
+    .guide-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #fff8f2;
+      border: 1px solid #f0c8a0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      line-height: 1.5;
     }
 
-    /* Speed announce */
-    .speed-announce {
-      position: fixed;
-      top: 50%; left: 50%;
-      z-index: 600;
-      pointer-events: none;
-      font-size: 2.4rem;
-      font-weight: bold;
-      color: #fff;
-      text-shadow: 3px 3px 0 #e63946, -2px 2px 0 #e63946;
-      animation: announceAnim 1.1s ease-out forwards;
-    }
-    @keyframes announceAnim {
-      0%   { transform: translate(-50%,-50%) scale(0);   opacity: 0; }
-      25%  { transform: translate(-50%,-50%) scale(1.3); opacity: 1; }
-      65%  { transform: translate(-50%,-50%) scale(1.0); opacity: 1; }
-      100% { transform: translate(-50%,-50%) scale(1.0); opacity: 0; }
+    .guide-list li::before {
+      content: attr(data-icon);
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
     }
 
-    /* Buttons */
-    #start-btn {
-      position: relative;
-      z-index: 1;
-      background: #FFD700;
-      color: #2a1000;
-      border: none;
-      border-radius: 50px;
-      padding: 13px 48px;
-      font-size: 1.35rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 6px 0 #b89900;
-      transition: transform 0.1s, box-shadow 0.1s;
-      font-family: inherit;
+    .guide-tip {
+      background: linear-gradient(135deg, #fff3e0 0%, #fce8b4 100%);
+      border: 2px solid #f4943a;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      margin-top: 8px;
     }
-    #start-btn:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 9px 0 #b89900;
-    }
-    #start-btn:active:not(:disabled) {
-      transform: translateY(4px);
-      box-shadow: 0 2px 0 #b89900;
-    }
-    #start-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    #message {
-      position: relative;
-      z-index: 1;
-      color: #fff;
-      font-size: 1.35rem;
-      font-weight: bold;
-      text-shadow: 2px 2px 0 #1a6e28;
-      margin-top: 14px;
-      min-height: 2rem;
+    .guide-tip strong { color: #e8622a; }
+
+    footer {
       text-align: center;
-    }
-    #best-line {
-      position: relative;
-      z-index: 1;
-      color: rgba(255,255,255,0.85);
-      font-size: 0.95rem;
-      margin-top: 4px;
-      text-shadow: 1px 1px 0 #1a6e28;
+      padding: 20px;
+      color: #a07050;
+      font-size: 0.82rem;
+      border-top: 1px solid #f0c8a0;
     }
   </style>
-</head>
-<body>
+  </head>
+  <body>
 
-  <div class="sky-deco">
-    <div class="sun"></div>
-    <div class="cloud c1"></div>
-    <div class="cloud c2"></div>
-  </div>
+    <header>
+      <h1>🐾 Lost Pet Finder</h1>
+    </header>
 
-  <h1>🔨 Whac-a-Mole!</h1>
+    <nav>
+      <button class="nav-btn" id="back-btn" onclick="goBack()">← Back</button>
+      <button class="nav-btn active" data-page="page-post">📋 Post Missing Pet</button>
+      <button class="nav-btn"        data-page="page-notifs" id="notifs-btn">
+        🔔 Notifications
+      </button>
+    </nav>
 
-  <div class="hud">
-    <div class="hud-box">
-      <div class="label">Score</div>
-      <div class="value" id="score">0</div>
+    <div class="action-cards">
+      <button class="action-card" onclick="goTo('page-guide-post')">
+        <div class="action-card-icon">📋</div>
+        <div class="action-card-title">Report Lost Pet</div>
+        <div class="action-card-desc">Animal guide — what details to include per species</div>
+      </button>
+      <button class="action-card" onclick="goTo('page-guide-browse')">
+        <div class="action-card-icon">🔍</div>
+        <div class="action-card-title">Browse Missing Pets</div>
+        <div class="action-card-desc">Search listings &amp; reunite pets with their families</div>
+      </button>
+      <button class="action-card" onclick="goTo('page-guide-report')">
+        <div class="action-card-icon">📍</div>
+        <div class="action-card-title">Report Found Pet</div>
+        <div class="action-card-desc">Found a stray? Learn how to report it effectively</div>
+      </button>
     </div>
-    <div class="hud-box">
-      <div class="label">Time</div>
-      <div class="value" id="timer">30</div>
-    </div>
-    <div class="hud-box">
-      <div class="label">Speed</div>
-      <div class="value" id="speed-val">🐌</div>
-    </div>
-  </div>
 
-  <div class="grid" id="grid"></div>
+    <main>
 
-  <button id="start-btn">▶ Start!</button>
-  <div id="message">Press Start to play! 🐾</div>
-  <div id="best-line"></div>
+      <!-- Page: Post Missing Pet -->
+      <div class="page active" id="page-post">
+        <div class="card">
+          <h2>Post a Missing Pet</h2>
+          <form id="post-form">
+            <div class="field">
+              <label for="animal-type">Animal type</label>
+              <select id="animal-type">
+                <option value="">-- pick one --</option>
+                <option value="dog">Dog</option>
+                <option value="cat">Cat</option>
+                <option value="bird">Bird</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="pet-name">Pet name</label>
+              <input id="pet-name" type="text" placeholder="e.g. Buddy" />
+            </div>
+            <div class="field">
+              <label for="colour">Colour</label>
+              <input id="colour" type="text" placeholder="e.g. golden brown" />
+            </div>
+            <div class="field">
+              <label for="size">Size</label>
+              <select id="size">
+                <option value="">-- pick one --</option>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="extra-details">Extra details</label>
+              <textarea id="extra-details" rows="3" placeholder="e.g. fluffy tail, missing one eye"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Post Missing Pet</button>
+          </form>
+        </div>
+      </div>
 
-  <script>
-    const HOLES = 9;
-    const GAME_DURATION = 30;
+      <!-- Page: Browse Missing Pets -->
+      <div class="page" id="page-browse">
+        <div class="pet-grid" id="pet-grid"></div>
+      </div>
 
-    const LEVELS = [
-      { minTime: 21, duration: 1100, emoji: '🐌', label: '🐌 Slow...' },
-      { minTime: 11, duration: 780,  emoji: '🐇', label: '🐇 Faster!' },
-      { minTime: 0,  duration: 700,  emoji: '🚀', label: '🚀 ZOOM!!'  },
-    ];
+      <!-- Page: Report Found Pet -->
+      <div class="page" id="page-found">
+        <div class="card">
+          <h2>Report a Found Pet</h2>
+          <form id="found-form">
+            <div class="field">
+              <label for="found-type">Animal type</label>
+              <select id="found-type">
+                <option value="">-- pick one --</option>
+                <option value="dog">Dog</option>
+                <option value="cat">Cat</option>
+                <option value="bird">Bird</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="found-location">Where did you find it?</label>
+              <input id="found-location" type="text" placeholder="e.g. Central Park near the fountain" />
+            </div>
+            <div class="field">
+              <label for="found-desc">Description</label>
+              <textarea id="found-desc" rows="3" placeholder="e.g. brown tabby cat, friendly, wearing a red collar"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Report Found Pet</button>
+          </form>
+        </div>
+      </div>
 
-    const HIT_WORDS = ['WHACK!', 'POW!', 'BONK!', 'ZAP!', 'BAM!', 'SMACK!'];
+      <!-- Page: Notifications -->
+      <div class="page" id="page-notifs">
+        <div class="card">
+          <h2>Notifications</h2>
+          <div id="notif-list"></div>
+        </div>
+      </div>
 
-    const grid      = document.getElementById('grid');
-    const scoreEl   = document.getElementById('score');
-    const timerEl   = document.getElementById('timer');
-    const speedEl   = document.getElementById('speed-val');
-    const startBtn  = document.getElementById('start-btn');
-    const messageEl = document.getElementById('message');
-    const bestLine  = document.getElementById('best-line');
+      <!-- Page: Report Lost Pet — Animal Reference Guide -->
+      <div class="page" id="page-guide-post">
+        <div class="card">
+          <h2>📋 Report Lost Pet — Animal Reference Guide</h2>
 
-    let score = 0, timeLeft = GAME_DURATION, running = false;
-    let moleTimer = null, countdown = null;
-    let lastHole = null, levelIdx = 0;
-    let bestScore = parseInt(localStorage.getItem('wam2-best') || '0');
-    if (bestScore > 0) bestLine.textContent = `Best: ${bestScore}`;
+          <div class="guide-section">
+            <h3>🐕 Dog</h3>
+            <ul class="guide-list">
+              <li data-icon="🏷️">Include the <strong>breed</strong> (or closest mix), exact coat colour, and any markings — white chest patch, black saddle, brindle stripes, etc.</li>
+              <li data-icon="📏">Note ear type (floppy, upright, cropped) and tail shape (curled, docked, long and feathered).</li>
+              <li data-icon="🔖">Mention collar colour, tag text, or microchip number if known.</li>
+              <li data-icon="🏃">Dogs often <strong>stay within 1–2 km</strong> of where they were lost; check parks, alleys, and neighbouring streets first.</li>
+              <li data-icon="😨">A scared dog may hide under cars or porches — search at dawn and dusk when it is quieter.</li>
+            </ul>
+          </div>
 
-    // ── SVG mole art ──────────────────────────────────────────────────────────
-    function moleSVG(whacked) {
-      const eyes = whacked
-        ? `<text x="30" y="50" font-size="15" text-anchor="middle" fill="#333">✕</text>
-           <text x="62" y="50" font-size="15" text-anchor="middle" fill="#333">✕</text>
-           <text x="46" y="22" font-size="20" text-anchor="middle" fill="#FFD700">★</text>`
-        : `<circle cx="30" cy="44" r="10" fill="white"/>
-           <circle cx="62" cy="44" r="10" fill="white"/>
-           <circle cx="32" cy="44" r="6"  fill="#111"/>
-           <circle cx="64" cy="44" r="6"  fill="#111"/>
-           <circle cx="34" cy="42" r="2.5" fill="white"/>
-           <circle cx="66" cy="42" r="2.5" fill="white"/>`;
+          <div class="guide-section">
+            <h3>🐈 Cat</h3>
+            <ul class="guide-list">
+              <li data-icon="🎨">Describe the <strong>coat pattern</strong> precisely — tabby (mackerel, classic, spotted), tortoiseshell, calico, solid, pointed (Siamese-style).</li>
+              <li data-icon="👁️">Note eye colour; cats often have two different-coloured eyes (heterochromia), which is very distinctive.</li>
+              <li data-icon="🏠">State whether the cat is <strong>indoor-only or indoor/outdoor</strong> — indoor cats rarely go further than the immediate garden.</li>
+              <li data-icon="🌙">Cats are most active at <strong>dawn and dusk</strong>; search under decks, in sheds, and inside drains.</li>
+              <li data-icon="🥫">Leave an unwashed piece of bedding or litter outside — familiar scents draw cats home.</li>
+            </ul>
+          </div>
 
-      const bodyColor  = whacked ? '#5a3318' : '#6B4226';
-      const tummyColor = whacked ? '#a87040' : '#C4956A';
-      const mouthPath  = whacked
-        ? 'M 36 64 Q 46 59 56 64'
-        : 'M 36 65 Q 46 72 56 65';
+          <div class="guide-section">
+            <h3>🐦 Bird</h3>
+            <ul class="guide-list">
+              <li data-icon="🌈">Describe <strong>exact feather colours</strong> per body region — head, wings, chest, tail, beak — and any colour mutations (lutino, albino, pied).</li>
+              <li data-icon="💍">Note any <strong>leg bands</strong> (colour and number sequence) — these can identify the bird's breeder and owner.</li>
+              <li data-icon="🗣️">If the bird can talk or mimic sounds, list any known words or phrases — a bird calling its own name is a strong identifier.</li>
+              <li data-icon="✈️">Birds can travel several kilometres quickly; contact local avian vets, bird clubs, and pet shops in your area.</li>
+              <li data-icon="🔊">Play a recording of the species' call outdoors — it may attract the bird back.</li>
+            </ul>
+          </div>
 
-      return `<svg viewBox="0 0 92 96" width="92" height="96" xmlns="http://www.w3.org/2000/svg">
-        <!-- body -->
-        <ellipse cx="46" cy="64" rx="38" ry="37" fill="${bodyColor}"/>
-        <!-- tummy -->
-        <ellipse cx="46" cy="70" rx="25" ry="25" fill="${tummyColor}"/>
-        <!-- left ear -->
-        <ellipse cx="18" cy="26" rx="12" ry="15" fill="${bodyColor}"/>
-        <ellipse cx="18" cy="26" rx="7"  ry="10" fill="#D4899A"/>
-        <!-- right ear -->
-        <ellipse cx="74" cy="26" rx="12" ry="15" fill="${bodyColor}"/>
-        <ellipse cx="74" cy="26" rx="7"  ry="10" fill="#D4899A"/>
-        <!-- eyes -->
-        ${eyes}
-        <!-- snout -->
-        <ellipse cx="46" cy="58" rx="15" ry="10" fill="${tummyColor}"/>
-        <!-- nose -->
-        <ellipse cx="46" cy="53" rx="7"  ry="5"  fill="#E5697A"/>
-        <!-- mouth -->
-        <path d="${mouthPath}" stroke="${bodyColor}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        <!-- blush -->
-        <ellipse cx="18" cy="58" rx="8" ry="5" fill="#FFB3C1" opacity="0.65"/>
-        <ellipse cx="74" cy="58" rx="8" ry="5" fill="#FFB3C1" opacity="0.65"/>
-        <!-- left paw -->
-        <ellipse cx="14" cy="88" rx="11" ry="7" fill="${bodyColor}"/>
-        <line x1="6"  y1="83" x2="4"  y2="77" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-        <line x1="12" y1="81" x2="10" y2="74" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-        <line x1="18" y1="81" x2="17" y2="74" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-        <!-- right paw -->
-        <ellipse cx="78" cy="88" rx="11" ry="7" fill="${bodyColor}"/>
-        <line x1="70" y1="83" x2="68" y2="77" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-        <line x1="76" y1="81" x2="74" y2="74" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-        <line x1="82" y1="81" x2="81" y2="74" stroke="#4a2210" stroke-width="2" stroke-linecap="round"/>
-      </svg>`;
-    }
+          <div class="guide-section">
+            <h3>🐾 Other Animals</h3>
+            <ul class="guide-list">
+              <li data-icon="🐇"><strong>Rabbits:</strong> note ear length, lop vs. upright, coat colour and length. Domestic rabbits rarely travel far but can hide in dense vegetation.</li>
+              <li data-icon="🐹"><strong>Small rodents (hamster, guinea pig):</strong> specify size, colour, and any distinguishing patches. Search at night — they are most active after dark.</li>
+              <li data-icon="🦎"><strong>Reptiles:</strong> include species name, length, and scale colour pattern. Contact local reptile societies and reptile-specialist vets.</li>
+              <li data-icon="🐠"><strong>Exotic/uncommon pets:</strong> attach a photo description and note any legal ownership documents — shelters may need these before returning the animal.</li>
+            </ul>
+          </div>
 
-    // ── Build grid ─────────────────────────────────────────────────────────────
-    const holes = [];
-    for (let i = 0; i < HOLES; i++) {
-      const wrap = document.createElement('div');
-      wrap.classList.add('hole-wrap');
+          <div class="guide-tip">
+            <strong>General tip:</strong> The more specific your listing, the faster a match is confirmed. Vague descriptions like "brown dog, medium size" get far fewer responses than "golden retriever mix, cream chest, red collar, answers to Biscuit."
+          </div>
 
-      const hole = document.createElement('div');
-      hole.classList.add('hole');
+          <br>
+          <button class="btn-primary" onclick="goTo('page-post')">Go to Post Missing Pet →</button>
+        </div>
+      </div>
 
-      const mc = document.createElement('div');
-      mc.classList.add('mole-container');
-      mc.innerHTML = moleSVG(false);
-      mc.addEventListener('click', whack);
+      <!-- Page: Browse Missing Pets Reference Guide -->
+      <div class="page" id="page-guide-browse">
+        <div class="card">
+          <h2>🔍 Browse Missing Pets — Reference Guide</h2>
 
-      hole.appendChild(mc);
-      wrap.appendChild(hole);
-      grid.appendChild(wrap);
-      holes.push(hole);
-    }
+          <div class="guide-section">
+            <h3>How to Search Effectively</h3>
+            <ul class="guide-list">
+              <li data-icon="👀">Scan all listings carefully — descriptions may be incomplete; look beyond the name and check breed, colour, and size.</li>
+              <li data-icon="📅">Check when the pet was posted. Recent posts are more likely still missing.</li>
+              <li data-icon="📍">Note the area. A pet rarely travels far from where it was last seen.</li>
+            </ul>
+          </div>
 
-    // ── Audio (Web Audio API) ──────────────────────────────────────────────────
-    let audioCtx = null;
-    function ctx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      return audioCtx;
-    }
-    function tone(freq, type, startHz, endHz, duration, vol, startOffset = 0) {
-      try {
-        const c = ctx();
-        const osc = c.createOscillator();
-        const g   = c.createGain();
-        osc.connect(g); g.connect(c.destination);
-        osc.type = type;
-        osc.frequency.setValueAtTime(startHz || freq, c.currentTime + startOffset);
-        if (endHz) osc.frequency.exponentialRampToValueAtTime(endHz, c.currentTime + startOffset + duration);
-        g.gain.setValueAtTime(vol, c.currentTime + startOffset);
-        g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + startOffset + duration);
-        osc.start(c.currentTime + startOffset);
-        osc.stop(c.currentTime + startOffset + duration + 0.01);
-      } catch (e) {}
-    }
-    function playHit()      { tone(0, 'sine', 700, 250, 0.14, 0.25); }
-    function playLevelUp()  { [523, 659, 784].forEach((f, i) => tone(f, 'square', f, null, 0.12, 0.14, i * 0.11)); }
-    function playGameOver() { [523, 440, 349, 262].forEach((f, i) => tone(f, 'sine', f, null, 0.18, 0.18, i * 0.16)); }
+          <div class="guide-section">
+            <h3>If You Think You Found a Match</h3>
+            <ul class="guide-list">
+              <li data-icon="📞">Contact the owner as soon as possible — time is critical.</li>
+              <li data-icon="📸">Offer to send a photo to confirm it's the right animal before arranging a meetup.</li>
+              <li data-icon="🏠">Arrange the reunion in a familiar, safe location for the pet.</li>
+            </ul>
+          </div>
 
-    // ── Hit effects ────────────────────────────────────────────────────────────
-    function spawnHitEffects(x, y) {
-      const star = document.createElement('div');
-      star.className = 'hit-star';
-      star.style.cssText = `left:${x}px;top:${y}px`;
-      star.textContent = '⭐';
-      document.body.appendChild(star);
-      setTimeout(() => star.remove(), 600);
+          <div class="guide-section">
+            <h3>Marking a Pet as Found</h3>
+            <ul class="guide-list">
+              <li data-icon="🎉">Use the <strong>I Found This Pet!</strong> button on any listing once you've confirmed the match.</li>
+              <li data-icon="🔔">The owner is notified automatically via the Notifications tab.</li>
+              <li data-icon="🗑️">The listing is removed from the board to keep results up to date.</li>
+            </ul>
+          </div>
 
-      const txt = document.createElement('div');
-      txt.className = 'hit-text';
-      txt.style.cssText = `left:${x + (Math.random()*30 - 15)}px;top:${y - 10}px`;
-      txt.textContent = HIT_WORDS[Math.floor(Math.random() * HIT_WORDS.length)];
-      document.body.appendChild(txt);
-      setTimeout(() => txt.remove(), 800);
-    }
+          <div class="guide-tip">
+            <strong>Tip:</strong> Even if no listing matches, use <em>Report Found Pet</em> to log the animal you found — the owner may post a missing report later and see your report in Notifications.
+          </div>
 
-    function spawnAnnounce(text) {
-      const el = document.createElement('div');
-      el.className = 'speed-announce';
-      el.textContent = text;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 1200);
-    }
+          <br>
+          <button class="btn-primary" onclick="goTo('page-browse')">Go to Browse Listings →</button>
+        </div>
+      </div>
 
-    // ── Game logic ─────────────────────────────────────────────────────────────
-    function getLevel() {
-      for (const lv of LEVELS) if (timeLeft > lv.minTime) return lv;
-      return LEVELS[LEVELS.length - 1];
-    }
+      <!-- Page: Report Found Pet Reference Guide -->
+      <div class="page" id="page-guide-report">
+        <div class="card">
+          <h2>📍 Report Found Pet — Reference Guide</h2>
 
-    function randomHole() {
-      let h;
-      do { h = holes[Math.floor(Math.random() * HOLES)]; } while (h === lastHole);
-      lastHole = h;
-      return h;
-    }
+          <div class="guide-section">
+            <h3>What to Do Immediately</h3>
+            <ul class="guide-list">
+              <li data-icon="🛡️">Ensure the animal is safe. Keep it away from traffic and other animals.</li>
+              <li data-icon="🏷️">Check for a collar tag or microchip number — vets can scan for chips for free.</li>
+              <li data-icon="📸">Take a clear photo in good lighting so owners can confirm the match.</li>
+            </ul>
+          </div>
 
-    function showMole() {
-      if (!running) return;
-      const hole = randomHole();
-      const lv   = getLevel();
-      const dur  = lv.duration + (Math.random() * 160 - 80);
+          <div class="guide-section">
+            <h3>Writing a Good Description</h3>
+            <ul class="guide-list">
+              <li data-icon="🎨">Include specific colours, markings, and any distinctive features (scars, patches, eye colour).</li>
+              <li data-icon="📏">Note the approximate size and estimated breed if known.</li>
+              <li data-icon="😺">Describe the animal's behaviour — calm, scared, friendly — this helps owners recognise their pet.</li>
+              <li data-icon="📌">Be precise about the location: street name, nearby landmark, or neighbourhood.</li>
+            </ul>
+          </div>
 
-      hole.classList.add('active');
-      moleTimer = setTimeout(() => {
-        hole.classList.remove('active');
-        if (running) showMole();
-      }, dur);
-    }
+          <div class="guide-section">
+            <h3>Next Steps After Reporting</h3>
+            <ul class="guide-list">
+              <li data-icon="🔍">Browse the missing pets list to see if there's already a matching post.</li>
+              <li data-icon="🏥">If the animal appears injured or distressed, contact your local vet or animal shelter.</li>
+              <li data-icon="📢">Share on local community boards or social media to reach more potential owners.</li>
+            </ul>
+          </div>
 
-    function whack(e) {
-      if (!running) return;
-      const mc   = e.currentTarget;
-      const hole = mc.parentElement;
-      if (!hole.classList.contains('active')) return;
+          <div class="guide-tip">
+            <strong>Tip:</strong> If you can temporarily foster the animal, mention it in your description — it greatly improves the pet's chances of a safe reunion.
+          </div>
 
-      e.stopPropagation();
-      score++;
-      scoreEl.textContent = score;
-      playHit();
-      spawnHitEffects(e.clientX, e.clientY);
+          <br>
+          <button class="btn-primary" onclick="goTo('page-found')">Go to Report Form →</button>
+        </div>
+      </div>
 
-      mc.innerHTML = moleSVG(true);
-      hole.classList.remove('active');
-      clearTimeout(moleTimer);
+    </main>
 
-      setTimeout(() => {
-        mc.innerHTML = moleSVG(false);
-        if (running) showMole();
-      }, 380);
-    }
+    <footer>Lost Pet Finder &mdash; helping reunite pets with their families.</footer>
 
-    function startGame() {
-      score = timeLeft = GAME_DURATION;
-      score = 0;
-      levelIdx = 0;
-      scoreEl.textContent = '0';
-      timerEl.textContent = GAME_DURATION;
-      timerEl.classList.remove('urgent');
-      speedEl.textContent = LEVELS[0].emoji;
-      messageEl.textContent = '';
-      running = true;
-      startBtn.disabled = true;
+    <div class="toast" id="toast"></div>
 
-      holes.forEach(h => {
-        h.classList.remove('active');
-        h.querySelector('.mole-container').innerHTML = moleSVG(false);
+    <script>
+      const EMOJIS = { dog: '🐕', cat: '🐈', bird: '🐦', other: '🐾' };
+
+      let pets   = JSON.parse(localStorage.getItem('lpf_pets')   || '[]');
+      let notifs = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
+      let unread = parseInt(localStorage.getItem('lpf_unread')   || '0');
+
+      function savePets()   { localStorage.setItem('lpf_pets',   JSON.stringify(pets));   }
+      function saveNotifs() {
+        localStorage.setItem('lpf_notifs', JSON.stringify(notifs));
+        localStorage.setItem('lpf_unread', String(unread));
+        updateBadge();
+      }
+
+      function esc(s) {
+        return String(s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function timeAgo(ts) {
+        const sec = Math.floor((Date.now() - ts) / 1000);
+        if (sec < 60)    return 'just now';
+        if (sec < 3600)  return Math.floor(sec / 60) + 'm ago';
+        if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
+        return Math.floor(sec / 86400) + 'd ago';
+      }
+
+      function showToast(msg, type) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast ' + type;
+        clearTimeout(el._t);
+        requestAnimationFrame(() => {
+          el.classList.add('show');
+          el._t = setTimeout(() => el.classList.remove('show'), 3200);
+        });
+      }
+
+      function clearErrors(form) {
+        form.querySelectorAll('.err').forEach(el => el.classList.remove('err'));
+        form.querySelectorAll('.error-msg').forEach(el => el.remove());
+      }
+
+      function showError(id, msg) {
+        const el = document.getElementById(id);
+        el.classList.add('err');
+        const div = document.createElement('div');
+        div.className = 'error-msg';
+        div.textContent = msg;
+        el.parentNode.appendChild(div);
+      }
+
+      // ── Navigation ───────────────────────────────────────────────────────────
+      let _history = [];
+
+      function _activate(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        const navBtn = document.querySelector(`[data-page="${pageId}"]`);
+        if (navBtn) navBtn.classList.add('active');
+        document.getElementById('back-btn').classList.toggle('visible', _history.length > 0);
+
+        if (pageId === 'page-browse') renderPets();
+        if (pageId === 'page-notifs') { unread = 0; saveNotifs(); renderNotifs(); }
+      }
+
+      function currentPage() {
+        return document.querySelector('.page.active')?.id || 'page-post';
+      }
+
+      function goTo(pageId) {
+        _history.push(currentPage());
+        _activate(pageId);
+      }
+
+      function goBack() {
+        if (_history.length === 0) return;
+        _activate(_history.pop());
+      }
+
+      document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
+        btn.addEventListener('click', () => { _history = []; goTo(btn.dataset.page); });
       });
 
-      showMole();
-
-      countdown = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = timeLeft;
-        if (timeLeft <= 10) timerEl.classList.add('urgent');
-
-        const lv    = getLevel();
-        const newIdx = LEVELS.indexOf(lv);
-        if (newIdx > levelIdx) {
-          levelIdx = newIdx;
-          speedEl.textContent = lv.emoji;
-          spawnAnnounce(lv.label);
-          playLevelUp();
+      // ── Badge ────────────────────────────────────────────────────────────────
+      function updateBadge() {
+        const btn = document.getElementById('notifs-btn');
+        let badge = btn.querySelector('.badge');
+        if (unread > 0) {
+          if (!badge) { badge = document.createElement('span'); badge.className = 'badge'; btn.appendChild(badge); }
+          badge.textContent = unread > 9 ? '9+' : unread;
+        } else {
+          if (badge) badge.remove();
         }
-
-        if (timeLeft <= 0) endGame();
-      }, 1000);
-    }
-
-    function endGame() {
-      running = false;
-      clearTimeout(moleTimer);
-      clearInterval(countdown);
-      holes.forEach(h => h.classList.remove('active'));
-      playGameOver();
-
-      const isNew = score > bestScore;
-      if (isNew) {
-        bestScore = score;
-        localStorage.setItem('wam2-best', bestScore);
-        messageEl.textContent = `🏆 NEW BEST! You scored ${score}! 🎉`;
-      } else {
-        messageEl.textContent = `Time's up! You scored ${score}! 🐾`;
       }
-      bestLine.textContent = bestScore > 0 ? `Best: ${bestScore}` : '';
-      startBtn.disabled = false;
-      startBtn.textContent = '▶ Play Again!';
-    }
 
-    startBtn.addEventListener('click', startGame);
-  </script>
-</body>
+      function addNotif(icon, msg) {
+        notifs.unshift({ icon, msg, time: Date.now() });
+        if (notifs.length > 20) notifs.pop();
+        unread++;
+        saveNotifs();
+      }
+
+      // ── Pets ─────────────────────────────────────────────────────────────────
+      function renderPets() {
+        const grid = document.getElementById('pet-grid');
+        if (pets.length === 0) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1">
+              <div class="empty-icon">🔍</div>
+              <p>No missing pets posted yet.<br>Use <strong>Post Missing Pet</strong> to add one.</p>
+            </div>`;
+          return;
+        }
+        grid.innerHTML = pets.map((p, i) => `
+          <div class="pet-card">
+            <div class="pc-emoji">${EMOJIS[p.type] || '🐾'}</div>
+            <div class="pc-name">${esc(p.name)}</div>
+            <div class="pc-meta">
+              ${p.size ? esc(p.size[0].toUpperCase() + p.size.slice(1)) + ' &bull; ' : ''}${esc(p.colour || 'Unknown colour')}
+            </div>
+            ${p.details ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
+            <button class="btn-green" onclick="markFound(${i})">I Found This Pet! 🎉</button>
+          </div>`
+        ).join('');
+      }
+
+      function markFound(i) {
+        const pet = pets[i];
+        pets.splice(i, 1);
+        savePets();
+        renderPets();
+        addNotif('🎉', `${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
+        showToast(`${pet.name} has been marked as found! 🎉`, 'success');
+      }
+
+      // ── Notifications ────────────────────────────────────────────────────────
+      function renderNotifs() {
+        const list = document.getElementById('notif-list');
+        if (notifs.length === 0) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🔔</div>
+              <p>No notifications yet.</p>
+            </div>`;
+          return;
+        }
+        list.innerHTML = `<div class="notif-list">` +
+          notifs.map(n => `
+            <div class="notif-item">
+              <div class="notif-icon">${n.icon}</div>
+              <div>
+                <div class="notif-msg">${n.msg}</div>
+                <div class="notif-time">${timeAgo(n.time)}</div>
+              </div>
+            </div>`
+          ).join('') +
+          `</div>`;
+      }
+
+      // ── Post missing pet ─────────────────────────────────────────────────────
+      document.getElementById('post-form').addEventListener('submit', e => {
+        e.preventDefault();
+        clearErrors(e.target);
+
+        const type    = document.getElementById('animal-type').value;
+        const name    = document.getElementById('pet-name').value.trim();
+        const colour  = document.getElementById('colour').value.trim();
+        const size    = document.getElementById('size').value;
+        const details = document.getElementById('extra-details').value.trim();
+
+        let ok = true;
+        if (!type) { showError('animal-type', 'Please select an animal type'); ok = false; }
+        if (!name) { showError('pet-name', 'Please enter the pet\'s name');    ok = false; }
+        if (!ok) return;
+
+        pets.push({ type, name, colour, size, details, postedAt: Date.now() });
+        savePets();
+        addNotif(EMOJIS[type] || '🐾', `A missing ${type} named "${esc(name)}" has been posted.`);
+        e.target.reset();
+        showToast(`${name} has been posted as missing!`, 'success');
+        goTo('page-browse');
+      });
+
+      // ── Report found pet ─────────────────────────────────────────────────────
+      document.getElementById('found-form').addEventListener('submit', e => {
+        e.preventDefault();
+        clearErrors(e.target);
+
+        const type     = document.getElementById('found-type').value;
+        const location = document.getElementById('found-location').value.trim();
+        const desc     = document.getElementById('found-desc').value.trim();
+
+        let ok = true;
+        if (!type)     { showError('found-type',     'Please select an animal type'); ok = false; }
+        if (!location) { showError('found-location', 'Please enter a location');      ok = false; }
+        if (!ok) return;
+
+        addNotif(EMOJIS[type] || '🐾',
+          `A ${type} was found at ${esc(location)}.${desc ? ' ' + esc(desc) : ''}`);
+        e.target.reset();
+        showToast('Thank you for reporting a found pet!', 'info');
+        goTo('page-notifs');
+      });
+
+      // ── Init ─────────────────────────────────────────────────────────────────
+      updateBadge();
+      renderNotifs();
+    </script>
+
+  </body>
 </html>
