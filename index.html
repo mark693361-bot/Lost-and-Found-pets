@@ -6,6 +6,7 @@
     <title>Lost Pet Finder</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -748,13 +749,17 @@
     <div class="toast" id="toast"></div>
 
     <script>
+      const db = supabase.createClient(
+        'https://exdaerddjzklfgvxombf.supabase.co',
+        'sb_publishable_DAsKFF9bxZtNA5dmk7Ie6w_djnElDvV'
+      );
+
       const EMOJIS = { dog: '🐕', cat: '🐈', bird: '🐦', other: '🐾' };
 
-      let pets   = JSON.parse(localStorage.getItem('lpf_pets')   || '[]');
+      let pets   = [];
       let notifs = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
       let unread = parseInt(localStorage.getItem('lpf_unread')   || '0');
 
-      function savePets()   { localStorage.setItem('lpf_pets',   JSON.stringify(pets)); }
       function saveNotifs() {
         localStorage.setItem('lpf_notifs', JSON.stringify(notifs));
         localStorage.setItem('lpf_unread', String(unread));
@@ -814,7 +819,7 @@
         const guidePages = ['page-guide-post', 'page-guide-browse', 'page-guide-report'];
         document.querySelector('.action-cards').style.display = guidePages.includes(pageId) ? 'none' : '';
 
-        if (pageId === 'page-browse') { renderPets(); if (_mapView) renderMap(); }
+        if (pageId === 'page-browse') loadAndRenderPets();
         if (pageId === 'page-notifs') { unread = 0; saveNotifs(); renderNotifs(); }
       }
 
@@ -899,13 +904,13 @@
               </span><br>
               ${p.details  ? `<span style="font-size:0.82rem">${esc(p.details)}</span><br>` : ''}
               ${p.contact  ? `<span style="font-size:0.78rem">📞 ${esc(p.contact)}</span><br>` : ''}
-              <span style="font-size:0.75rem;color:#a07050">🕐 ${timeAgo(p.postedAt)}</span>
+              <span style="font-size:0.75rem;color:#a07050">🕐 ${timeAgo(new Date(p.created_at).getTime())}</span>
               <div style="display:flex;gap:6px;margin-top:8px">
-                <button onclick="markFound(${i})"
+                <button onclick="markFound('${p.id}')"
                   style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">
                   Found 🎉
                 </button>
-                <button onclick="removeListing(${i})"
+                <button onclick="removeListing('${p.id}')"
                   style="background:#ef5350;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">
                   Remove
                 </button>
@@ -954,6 +959,19 @@
       });
 
       // ── Pets ─────────────────────────────────────────────────────────────────
+      async function loadAndRenderPets() {
+        const grid = document.getElementById('pet-grid');
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
+        const { data, error } = await db.from('pets').select('*').order('created_at', { ascending: false });
+        if (error) {
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Could not load listings.</p></div>`;
+          return;
+        }
+        pets = data || [];
+        renderPets();
+        if (_mapView) renderMap();
+      }
+
       function renderPets() {
         const grid = document.getElementById('pet-grid');
         if (pets.length === 0) {
@@ -964,38 +982,40 @@
             </div>`;
           return;
         }
-        grid.innerHTML = pets.map((p, i) => `
+        grid.innerHTML = pets.map(p => `
           <div class="pet-card">
             <div class="pc-emoji">${EMOJIS[p.type] || '🐾'}</div>
             <div class="pc-name">${esc(p.name)}</div>
             <div class="pc-meta">
-              ${p.size ? esc(p.size[0].toUpperCase() + p.size.slice(1)) + ' &bull; ' : ''}${esc(p.colour || 'Unknown colour')}
+              ${p.size ? esc(p.size[0].toUpperCase() + p.size.slice(1)) : 'Unknown size'}
             </div>
             ${p.location ? `<div class="pc-meta">📍 ${esc(p.location)}</div>` : ''}
             ${p.details  ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
             ${p.contact  ? `<div class="pc-meta">📞 ${esc(p.contact)}</div>` : ''}
-            <div class="pc-meta" style="margin-top:4px">🕐 ${timeAgo(p.postedAt)}</div>
-            <button class="btn-green"   onclick="markFound(${i})">I Found This Pet! 🎉</button>
-            <button class="btn-remove"  onclick="removeListing(${i})">✕ Remove listing</button>
+            <div class="pc-meta" style="margin-top:4px">🕐 ${timeAgo(new Date(p.created_at).getTime())}</div>
+            <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
+            <button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>
           </div>`
         ).join('');
       }
 
-      function markFound(i) {
-        const pet = pets[i];
-        pets.splice(i, 1);
-        savePets();
+      async function markFound(id) {
+        const pet = pets.find(p => p.id === id);
+        const { error } = await db.from('pets').delete().eq('id', id);
+        if (error) { showToast('Could not update listing', 'info'); return; }
+        pets = pets.filter(p => p.id !== id);
         renderPets();
         if (_mapView) renderMap();
         addNotif('🎉', `${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
         showToast(`${pet.name} has been marked as found! 🎉`, 'success');
       }
 
-      function removeListing(i) {
-        const pet = pets[i];
+      async function removeListing(id) {
+        const pet = pets.find(p => p.id === id);
         if (!confirm(`Remove the listing for ${pet.name}?`)) return;
-        pets.splice(i, 1);
-        savePets();
+        const { error } = await db.from('pets').delete().eq('id', id);
+        if (error) { showToast('Could not remove listing', 'info'); return; }
+        pets = pets.filter(p => p.id !== id);
         renderPets();
         if (_mapView) renderMap();
         showToast('Listing removed.', 'info');
@@ -1059,11 +1079,13 @@
           } catch { /* post without coords if geocoding fails */ }
         }
 
+        const { error: insertError } = await db.from('pets').insert({ type, name, size, details, contact, location, lat, lng });
+
         submitBtn.disabled = false;
         submitBtn.textContent = 'Post Missing Pet';
 
-        pets.push({ type, name, colour, size, details, contact, location, lat, lng, postedAt: Date.now() });
-        savePets();
+        if (insertError) { showToast('Failed to post listing. Please try again.', 'info'); return; }
+
         addNotif(EMOJIS[type] || '🐾', `A missing ${type} named "${esc(name)}" has been posted.`);
         e.target.reset();
         delete locEl.dataset.lat;
