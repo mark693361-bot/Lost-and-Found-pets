@@ -1,0 +1,10 @@
+{
+  "name": "Lost Pet Finder",
+  "short_name": "PetFinder",
+  "description": "Find and report missing pets in your community",
+  "start_url": "/Lost-and-Found-pets/",
+  "scope": "/Lost-and-Found-pets/",
+  "display": "standalone",
+  "background_color": "#fff8f2",
+  "theme_color": "#e8622a"
+}

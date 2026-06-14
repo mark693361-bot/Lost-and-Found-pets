@@ -3,6 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#e8622a" />
+    <meta name="description" content="Find and report missing pets in your community" />
+    <link rel="manifest" href="manifest.json" />
     <title>Lost Pet Finder</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -24,12 +27,11 @@
       color: white;
       padding: 20px 32px;
       text-align: center;
-      box-shadow: 0 3px 10px rgba(232, 98, 42, 0.3);
+      box-shadow: 0 3px 10px rgba(232,98,42,0.3);
     }
 
     header h1 { font-size: 1.9rem; letter-spacing: 1px; }
 
-    /* ── Nav ── */
     nav {
       background: white;
       border-bottom: 2px solid #f0c8a0;
@@ -60,13 +62,7 @@
 
     .nav-btn:hover { background: #fff0e6; color: #e8622a; }
 
-    #back-btn {
-      display: none;
-      align-items: center;
-      gap: 5px;
-      margin-right: auto;
-    }
-
+    #back-btn { display: none; align-items: center; gap: 5px; margin-right: auto; }
     #back-btn.visible { display: flex; }
 
     .nav-btn.active {
@@ -78,8 +74,7 @@
 
     .nav-btn .badge {
       position: absolute;
-      top: -4px;
-      right: -4px;
+      top: -4px; right: -4px;
       background: #e53935;
       color: white;
       font-size: 0.65rem;
@@ -93,16 +88,9 @@
       padding: 0 4px;
     }
 
-    /* ── Pages ── */
     main { flex: 1; }
 
-    .page {
-      display: none;
-      max-width: 760px;
-      margin: 32px auto;
-      padding: 0 16px 40px;
-    }
-
+    .page { display: none; max-width: 760px; margin: 32px auto; padding: 0 16px 40px; }
     .page.active { display: block; }
 
     .card {
@@ -116,14 +104,9 @@
     h2 { color: #e8622a; font-size: 1.25rem; margin-bottom: 20px; }
 
     form { display: flex; flex-direction: column; gap: 16px; }
-
     .field { display: flex; flex-direction: column; gap: 6px; }
 
-    label {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #5a3520;
-    }
+    label { font-weight: 600; font-size: 0.9rem; color: #5a3520; }
 
     input, select, textarea {
       width: 100%;
@@ -181,10 +164,10 @@
     .btn-green:hover  { transform: translateY(-1px); box-shadow: 0 4px 0 #2e7d32; }
     .btn-green:active { transform: translateY(2px);  box-shadow: 0 1px 0 #2e7d32; }
 
-    /* ── Pet grid ── */
+    /* Pet grid */
     .pet-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 16px;
     }
 
@@ -201,9 +184,36 @@
     .pc-emoji  { font-size: 2.5rem; line-height: 1; }
     .pc-name   { font-weight: 700; font-size: 1.05rem; }
     .pc-meta   { font-size: 0.78rem; color: #7a5030; }
-    .pc-detail { font-size: 0.85rem; color: #5a3520; flex: 1; margin-bottom: 8px; }
+    .pc-detail { font-size: 0.85rem; color: #5a3520; flex: 1; margin-bottom: 8px; white-space: pre-line; }
 
-    /* ── Notifications ── */
+    /* Species badge */
+    .species-label {
+      display: inline-block;
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      align-self: flex-start;
+    }
+
+    /* Reward badge */
+    .reward-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ffd600 0%, #ffab00 100%);
+      color: #5d4037;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+      letter-spacing: 0.3px;
+      align-self: flex-start;
+    }
+
+    /* Notifications */
     .notif-list { display: flex; flex-direction: column; gap: 10px; }
 
     .notif-item {
@@ -220,20 +230,14 @@
     .notif-msg  { font-size: 0.9rem; }
     .notif-time { font-size: 0.75rem; color: #a07050; margin-top: 3px; }
 
-    /* ── Empty state ── */
-    .empty-state {
-      text-align: center;
-      padding: 40px 16px;
-      color: #a07050;
-    }
+    /* Empty state */
+    .empty-state { text-align: center; padding: 40px 16px; color: #a07050; }
+    .empty-icon  { font-size: 3rem; margin-bottom: 10px; }
 
-    .empty-icon { font-size: 3rem; margin-bottom: 10px; }
-
-    /* ── Toast ── */
+    /* Toast */
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 24px; right: 24px;
       background: #2c1a0e;
       color: white;
       padding: 14px 20px;
@@ -252,7 +256,7 @@
     .toast.success { border-left: 4px solid #4caf50; }
     .toast.info    { border-left: 4px solid #e8622a; }
 
-    /* ── Action cards (5×6 cm) ── */
+    /* Action cards */
     .action-cards {
       display: flex;
       gap: 20px;
@@ -264,8 +268,7 @@
     }
 
     .action-card {
-      width: 5cm;
-      height: 6cm;
+      width: 5cm; height: 6cm;
       background: linear-gradient(145deg, #ffffff 0%, #fff0e6 100%);
       border: 2px solid #f0c8a0;
       border-radius: 16px;
@@ -299,38 +302,12 @@
     .action-card:hover::before { opacity: 0.07; }
     .action-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #d4a070; }
 
-    .action-card-icon { font-size: 2.4rem; line-height: 1; position: relative; }
-    .action-card-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #e8622a;
-      position: relative;
-    }
-    .action-card-desc {
-      font-size: 0.75rem;
-      color: #7a5030;
-      line-height: 1.4;
-      position: relative;
-    }
+    .action-card-icon  { font-size: 2.4rem; line-height: 1; position: relative; }
+    .action-card-title { font-size: 0.95rem; font-weight: 700; color: #e8622a; position: relative; }
+    .action-card-desc  { font-size: 0.75rem; color: #7a5030; line-height: 1.4; position: relative; }
 
-    /* ── Animal species block ── */
-    .species-label {
-      display: inline-block;
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 50px;
-      margin-bottom: 6px;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-    }
-
-    /* ── Reference guide page ── */
-    .guide-section {
-      margin-bottom: 24px;
-    }
+    /* Guide */
+    .guide-section { margin-bottom: 24px; }
 
     .guide-section h3 {
       font-size: 1rem;
@@ -340,12 +317,7 @@
       border-bottom: 2px solid #f0c8a0;
     }
 
-    .guide-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .guide-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
 
     .guide-list li {
       display: flex;
@@ -359,12 +331,7 @@
       line-height: 1.5;
     }
 
-    .guide-list li::before {
-      content: attr(data-icon);
-      font-size: 1.1rem;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
+    .guide-list li::before { content: attr(data-icon); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
 
     .guide-tip {
       background: linear-gradient(135deg, #fff3e0 0%, #fce8b4 100%);
@@ -378,12 +345,12 @@
 
     .guide-tip strong { color: #e8622a; }
 
-    /* ── Browse view toggles ── */
+    /* Browse header */
     .browse-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .view-toggles { display: flex; gap: 6px; }
@@ -409,7 +376,7 @@
       border-color: transparent;
     }
 
-    /* ── Map container ── */
+    /* Map */
     #pet-map {
       display: none;
       height: 440px;
@@ -418,13 +385,8 @@
       border: 2px solid #f0c8a0;
     }
 
-    /* ── Location field row ── */
-    .field-row {
-      display: flex;
-      gap: 8px;
-      align-items: stretch;
-    }
-
+    /* Location row */
+    .field-row { display: flex; gap: 8px; align-items: stretch; }
     .field-row input { flex: 1; }
 
     .btn-locate {
@@ -439,10 +401,10 @@
       transition: opacity 0.15s;
     }
 
-    .btn-locate:hover   { opacity: 0.85; }
+    .btn-locate:hover    { opacity: 0.85; }
     .btn-locate:disabled { opacity: 0.5; cursor: default; }
 
-    /* ── Remove listing button ── */
+    /* Card buttons */
     .btn-remove {
       background: none;
       border: 1.5px solid #e57373;
@@ -457,6 +419,95 @@
     }
 
     .btn-remove:hover { background: #ffebee; }
+
+    .btn-share {
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 2px 0 #1a9e4a;
+      transition: opacity 0.15s;
+    }
+
+    .btn-share:hover { opacity: 0.88; }
+
+    /* Filter bar */
+    .filter-bar { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+    .filter-search {
+      width: 100%;
+      padding: 10px 16px;
+      border: 2px solid #f0c8a0;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: white;
+      color: #2c1a0e;
+      transition: border-color 0.2s;
+    }
+
+    .filter-search:focus { outline: none; border-color: #e8622a; }
+
+    .type-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .filter-btn {
+      background: none;
+      border: 2px solid #f0c8a0;
+      border-radius: 50px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #7a5030;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover { background: #fff0e6; }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Live dot */
+    .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #4caf50;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Match alert */
+    .match-alert {
+      background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+      border: 2px solid #4caf50;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 20px;
+    }
+
+    .match-alert h3 { color: #2e7d32; font-size: 1rem; margin-bottom: 10px; }
+
+    .match-card {
+      background: white;
+      border: 1px solid #c8e6c9;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
 
     footer {
       text-align: center;
@@ -476,9 +527,8 @@
     <nav>
       <button class="nav-btn" id="back-btn" onclick="goBack()">← Back</button>
       <button class="nav-btn active" data-page="page-post">📋 Post Missing Pet</button>
-      <button class="nav-btn"        data-page="page-notifs" id="notifs-btn">
-        🔔 Notifications
-      </button>
+      <button class="nav-btn" data-page="page-browse">🔍 Browse</button>
+      <button class="nav-btn" data-page="page-notifs" id="notifs-btn">🔔 Notifications</button>
     </nav>
 
     <div class="action-cards">
@@ -501,7 +551,7 @@
 
     <main>
 
-      <!-- Page: Post Missing Pet -->
+      <!-- Post Missing Pet -->
       <div class="page active" id="page-post">
         <div class="card">
           <h2>Post a Missing Pet</h2>
@@ -521,8 +571,8 @@
               <input id="pet-name" type="text" placeholder="e.g. Buddy" />
             </div>
             <div class="field">
-              <label for="colour">Colour</label>
-              <input id="colour" type="text" placeholder="e.g. golden brown" />
+              <label for="colour">Colour / markings</label>
+              <input id="colour" type="text" placeholder="e.g. golden brown, white chest patch" />
             </div>
             <div class="field">
               <label for="size">Size</label>
@@ -535,7 +585,11 @@
             </div>
             <div class="field">
               <label for="extra-details">Extra details</label>
-              <textarea id="extra-details" rows="3" placeholder="e.g. fluffy tail, missing one eye"></textarea>
+              <textarea id="extra-details" rows="3" placeholder="e.g. fluffy tail, missing one eye, wears red collar"></textarea>
+            </div>
+            <div class="field">
+              <label for="reward">Reward offered (optional)</label>
+              <input id="reward" type="text" placeholder="e.g. $50 cash reward" />
             </div>
             <div class="field">
               <label for="last-location">Last seen location</label>
@@ -553,20 +607,31 @@
         </div>
       </div>
 
-      <!-- Page: Browse Missing Pets -->
+      <!-- Browse Missing Pets -->
       <div class="page" id="page-browse">
         <div class="browse-header">
-          <h2 style="margin-bottom:0">Missing Pets</h2>
+          <h2 style="margin-bottom:0"><span class="live-dot"></span>Missing Pets</h2>
           <div class="view-toggles">
             <button class="view-toggle active" id="view-list" onclick="setView('list')">☰ List</button>
             <button class="view-toggle" id="view-map" onclick="setView('map')">🗺 Map</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <input class="filter-search" id="search-input" type="text"
+            placeholder="🔍 Search by name, colour, location…" oninput="onSearchInput()" />
+          <div class="type-filters">
+            <button class="filter-btn active" onclick="setTypeFilter(this,'')">All</button>
+            <button class="filter-btn" onclick="setTypeFilter(this,'dog')">🐕 Dogs</button>
+            <button class="filter-btn" onclick="setTypeFilter(this,'cat')">🐈 Cats</button>
+            <button class="filter-btn" onclick="setTypeFilter(this,'bird')">🐦 Birds</button>
+            <button class="filter-btn" onclick="setTypeFilter(this,'other')">🐾 Other</button>
           </div>
         </div>
         <div class="pet-grid" id="pet-grid"></div>
         <div id="pet-map"></div>
       </div>
 
-      <!-- Page: Report Found Pet -->
+      <!-- Report Found Pet -->
       <div class="page" id="page-found">
         <div class="card">
           <h2>Report a Found Pet</h2>
@@ -591,10 +656,11 @@
             </div>
             <button type="submit" class="btn-primary">Report Found Pet</button>
           </form>
+          <div id="match-results"></div>
         </div>
       </div>
 
-      <!-- Page: Notifications -->
+      <!-- Notifications -->
       <div class="page" id="page-notifs">
         <div class="card">
           <h2>Notifications</h2>
@@ -602,11 +668,10 @@
         </div>
       </div>
 
-      <!-- Page: Report Lost Pet — Animal Reference Guide -->
+      <!-- Guide: Report Lost Pet -->
       <div class="page" id="page-guide-post">
         <div class="card">
           <h2>📋 Report Lost Pet — Animal Reference Guide</h2>
-
           <div class="guide-section">
             <h3>🐕 Dog</h3>
             <ul class="guide-list">
@@ -617,53 +682,47 @@
               <li data-icon="😨">A scared dog may hide under cars or porches — search at dawn and dusk when it is quieter.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>🐈 Cat</h3>
             <ul class="guide-list">
-              <li data-icon="🎨">Describe the <strong>coat pattern</strong> precisely — tabby (mackerel, classic, spotted), tortoiseshell, calico, solid, pointed (Siamese-style).</li>
-              <li data-icon="👁️">Note eye colour; cats often have two different-coloured eyes (heterochromia), which is very distinctive.</li>
+              <li data-icon="🎨">Describe the <strong>coat pattern</strong> precisely — tabby, tortoiseshell, calico, solid, or pointed (Siamese-style).</li>
+              <li data-icon="👁️">Note eye colour; heterochromia (two different colours) is very distinctive.</li>
               <li data-icon="🏠">State whether the cat is <strong>indoor-only or indoor/outdoor</strong> — indoor cats rarely go further than the immediate garden.</li>
               <li data-icon="🌙">Cats are most active at <strong>dawn and dusk</strong>; search under decks, in sheds, and inside drains.</li>
               <li data-icon="🥫">Leave an unwashed piece of bedding or litter outside — familiar scents draw cats home.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>🐦 Bird</h3>
             <ul class="guide-list">
-              <li data-icon="🌈">Describe <strong>exact feather colours</strong> per body region — head, wings, chest, tail, beak — and any colour mutations (lutino, albino, pied).</li>
-              <li data-icon="💍">Note any <strong>leg bands</strong> (colour and number sequence) — these can identify the bird's breeder and owner.</li>
-              <li data-icon="🗣️">If the bird can talk or mimic sounds, list any known words or phrases — a bird calling its own name is a strong identifier.</li>
-              <li data-icon="✈️">Birds can travel several kilometres quickly; contact local avian vets, bird clubs, and pet shops in your area.</li>
+              <li data-icon="🌈">Describe <strong>exact feather colours</strong> per region — head, wings, chest, tail, beak — and any mutations (lutino, albino, pied).</li>
+              <li data-icon="💍">Note any <strong>leg bands</strong> (colour and number) — these can identify the breeder and owner.</li>
+              <li data-icon="🗣️">List any words or phrases the bird can say — a bird calling its own name is a strong identifier.</li>
+              <li data-icon="✈️">Birds can travel kilometres quickly; contact avian vets, bird clubs, and pet shops nearby.</li>
               <li data-icon="🔊">Play a recording of the species' call outdoors — it may attract the bird back.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>🐾 Other Animals</h3>
             <ul class="guide-list">
-              <li data-icon="🐇"><strong>Rabbits:</strong> note ear length, lop vs. upright, coat colour and length. Domestic rabbits rarely travel far but can hide in dense vegetation.</li>
-              <li data-icon="🐹"><strong>Small rodents (hamster, guinea pig):</strong> specify size, colour, and any distinguishing patches. Search at night — they are most active after dark.</li>
-              <li data-icon="🦎"><strong>Reptiles:</strong> include species name, length, and scale colour pattern. Contact local reptile societies and reptile-specialist vets.</li>
-              <li data-icon="🐠"><strong>Exotic/uncommon pets:</strong> attach a photo description and note any legal ownership documents — shelters may need these before returning the animal.</li>
+              <li data-icon="🐇"><strong>Rabbits:</strong> note ear length, lop vs. upright, coat colour and length.</li>
+              <li data-icon="🐹"><strong>Small rodents:</strong> specify size, colour, and any patches. Search at night — they are most active after dark.</li>
+              <li data-icon="🦎"><strong>Reptiles:</strong> include species name, length, and scale colour pattern.</li>
+              <li data-icon="🐠"><strong>Exotic pets:</strong> note any legal ownership documents — shelters may need these before returning the animal.</li>
             </ul>
           </div>
-
           <div class="guide-tip">
-            <strong>General tip:</strong> The more specific your listing, the faster a match is confirmed. Vague descriptions like "brown dog, medium size" get far fewer responses than "golden retriever mix, cream chest, red collar, answers to Biscuit."
+            <strong>General tip:</strong> The more specific your listing, the faster a match is confirmed. "Golden retriever mix, cream chest, red collar, answers to Biscuit" gets far more responses than "brown dog, medium size."
           </div>
-
           <br>
           <button class="btn-primary" onclick="goTo('page-post')">Go to Post Missing Pet →</button>
         </div>
       </div>
 
-      <!-- Page: Browse Missing Pets Reference Guide -->
+      <!-- Guide: Browse -->
       <div class="page" id="page-guide-browse">
         <div class="card">
           <h2>🔍 Browse Missing Pets — Reference Guide</h2>
-
           <div class="guide-section">
             <h3>How to Search Effectively</h3>
             <ul class="guide-list">
@@ -672,7 +731,6 @@
               <li data-icon="📍">Note the area. A pet rarely travels far from where it was last seen.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>If You Think You Found a Match</h3>
             <ul class="guide-list">
@@ -681,30 +739,25 @@
               <li data-icon="🏠">Arrange the reunion in a familiar, safe location for the pet.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>Marking a Pet as Found</h3>
             <ul class="guide-list">
               <li data-icon="🎉">Use the <strong>I Found This Pet!</strong> button on any listing once you've confirmed the match.</li>
-              <li data-icon="🔔">The owner is notified automatically via the Notifications tab.</li>
-              <li data-icon="🗑️">The listing is removed from the board to keep results up to date.</li>
+              <li data-icon="🔔">The listing is removed from the board to keep results up to date.</li>
             </ul>
           </div>
-
           <div class="guide-tip">
-            <strong>Tip:</strong> Even if no listing matches, use <em>Report Found Pet</em> to log the animal you found — the owner may post a missing report later and see your report in Notifications.
+            <strong>Tip:</strong> Even if no listing matches, use <em>Report Found Pet</em> to log the animal — the owner may post later and see your report in Notifications.
           </div>
-
           <br>
           <button class="btn-primary" onclick="goTo('page-browse')">Go to Browse Listings →</button>
         </div>
       </div>
 
-      <!-- Page: Report Found Pet Reference Guide -->
+      <!-- Guide: Found Pet -->
       <div class="page" id="page-guide-report">
         <div class="card">
           <h2>📍 Report Found Pet — Reference Guide</h2>
-
           <div class="guide-section">
             <h3>What to Do Immediately</h3>
             <ul class="guide-list">
@@ -713,17 +766,15 @@
               <li data-icon="📸">Take a clear photo in good lighting so owners can confirm the match.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>Writing a Good Description</h3>
             <ul class="guide-list">
-              <li data-icon="🎨">Include specific colours, markings, and any distinctive features (scars, patches, eye colour).</li>
+              <li data-icon="🎨">Include specific colours, markings, and distinctive features (scars, patches, eye colour).</li>
               <li data-icon="📏">Note the approximate size and estimated breed if known.</li>
               <li data-icon="😺">Describe the animal's behaviour — calm, scared, friendly — this helps owners recognise their pet.</li>
               <li data-icon="📌">Be precise about the location: street name, nearby landmark, or neighbourhood.</li>
             </ul>
           </div>
-
           <div class="guide-section">
             <h3>Next Steps After Reporting</h3>
             <ul class="guide-list">
@@ -732,11 +783,9 @@
               <li data-icon="📢">Share on local community boards or social media to reach more potential owners.</li>
             </ul>
           </div>
-
           <div class="guide-tip">
             <strong>Tip:</strong> If you can temporarily foster the animal, mention it in your description — it greatly improves the pet's chances of a safe reunion.
           </div>
-
           <br>
           <button class="btn-primary" onclick="goTo('page-found')">Go to Report Form →</button>
         </div>
@@ -759,6 +808,8 @@
       let pets   = [];
       let notifs = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
       let unread = parseInt(localStorage.getItem('lpf_unread')   || '0');
+      let filterType   = '';
+      let filterSearch = '';
 
       function saveNotifs() {
         localStorage.setItem('lpf_notifs', JSON.stringify(notifs));
@@ -768,8 +819,8 @@
 
       function esc(s) {
         return String(s)
-          .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
 
       function timeAgo(ts) {
@@ -805,7 +856,7 @@
         el.parentNode.appendChild(div);
       }
 
-      // ── Navigation ───────────────────────────────────────────────────────────
+      // ── Navigation ────────────────────────────────────────────────────────────
       let _history = [];
 
       function _activate(pageId) {
@@ -816,32 +867,24 @@
         if (navBtn) navBtn.classList.add('active');
         document.getElementById('back-btn').classList.toggle('visible', _history.length > 0);
 
-        const guidePages = ['page-guide-post', 'page-guide-browse', 'page-guide-report'];
+        const guidePages = ['page-guide-post','page-guide-browse','page-guide-report'];
         document.querySelector('.action-cards').style.display = guidePages.includes(pageId) ? 'none' : '';
 
         if (pageId === 'page-browse') loadAndRenderPets();
         if (pageId === 'page-notifs') { unread = 0; saveNotifs(); renderNotifs(); }
       }
 
-      function currentPage() {
-        return document.querySelector('.page.active')?.id || 'page-post';
-      }
+      function currentPage() { return document.querySelector('.page.active')?.id || 'page-post'; }
 
-      function goTo(pageId) {
-        _history.push(currentPage());
-        _activate(pageId);
-      }
+      function goTo(pageId) { _history.push(currentPage()); _activate(pageId); }
 
-      function goBack() {
-        if (_history.length === 0) return;
-        _activate(_history.pop());
-      }
+      function goBack() { if (_history.length) _activate(_history.pop()); }
 
       document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
         btn.addEventListener('click', () => { _history = []; _activate(btn.dataset.page); });
       });
 
-      // ── Badge ────────────────────────────────────────────────────────────────
+      // ── Badge ─────────────────────────────────────────────────────────────────
       function updateBadge() {
         const btn = document.getElementById('notifs-btn');
         let badge = btn.querySelector('.badge');
@@ -860,10 +903,8 @@
         saveNotifs();
       }
 
-      // ── Map ──────────────────────────────────────────────────────────────────
-      let _map = null;
-      let _mapView = false;
-      let _mapMarkers = [];
+      // ── Map ───────────────────────────────────────────────────────────────────
+      let _map = null, _mapView = false, _mapMarkers = [];
 
       function setView(v) {
         _mapView = v === 'map';
@@ -878,32 +919,27 @@
         if (!_map) {
           _map = L.map('pet-map').setView([20, 0], 2);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
             maxZoom: 19
           }).addTo(_map);
         }
-
         _mapMarkers.forEach(m => m.remove());
         _mapMarkers = [];
 
-        const located = pets.filter(p => p.lat && p.lng);
-        if (located.length === 0) {
-          _map.setView([20, 0], 2);
-          return;
-        }
+        const located = getFilteredPets().filter(p => p.lat && p.lng);
+        if (!located.length) { _map.setView([20, 0], 2); return; }
 
         located.forEach(p => {
-          const i = pets.indexOf(p);
           const marker = L.marker([p.lat, p.lng]).addTo(_map);
           marker.bindPopup(`
             <div style="min-width:155px;font-family:'Segoe UI',Arial,sans-serif">
-              <div style="font-size:1.8rem;line-height:1">${EMOJIS[p.type] || '🐾'}</div>
+              <div style="font-size:1.8rem;line-height:1">${EMOJIS[p.type]||'🐾'}</div>
               <strong style="font-size:0.95rem">${esc(p.name)}</strong><br>
               <span style="font-size:0.78rem;color:#7a5030">
-                ${esc(p.type)}${p.colour ? ' · ' + esc(p.colour) : ''}${p.size ? ' · ' + esc(p.size) : ''}
+                ${esc(p.type)}${p.colour?' · '+esc(p.colour):''}${p.size?' · '+esc(p.size):''}
               </span><br>
-              ${p.details  ? `<span style="font-size:0.82rem">${esc(p.details)}</span><br>` : ''}
-              ${p.contact  ? `<span style="font-size:0.78rem">📞 ${esc(p.contact)}</span><br>` : ''}
+              ${p.details ?`<span style="font-size:0.82rem;white-space:pre-line">${esc(p.details)}</span><br>`:''}
+              ${p.contact ?`<span style="font-size:0.78rem">📞 ${esc(p.contact)}</span><br>`:''}
               <span style="font-size:0.75rem;color:#a07050">🕐 ${timeAgo(new Date(p.created_at).getTime())}</span>
               <div style="display:flex;gap:6px;margin-top:8px">
                 <button onclick="markFound('${p.id}')"
@@ -915,8 +951,7 @@
                   Remove
                 </button>
               </div>
-            </div>
-          `);
+            </div>`);
           _mapMarkers.push(marker);
         });
 
@@ -925,40 +960,74 @@
         setTimeout(() => _map.invalidateSize(), 50);
       }
 
-      // ── Geolocation ──────────────────────────────────────────────────────────
+      // ── Geolocation ───────────────────────────────────────────────────────────
       function useMyLocation() {
-        if (!navigator.geolocation) { showToast('Geolocation not supported by this browser', 'info'); return; }
+        if (!navigator.geolocation) { showToast('Geolocation not supported', 'info'); return; }
         const btn = document.getElementById('btn-locate');
-        btn.textContent = '⏳';
-        btn.disabled = true;
+        btn.textContent = '⏳'; btn.disabled = true;
         navigator.geolocation.getCurrentPosition(async pos => {
           const lat = pos.coords.latitude, lng = pos.coords.longitude;
           const el = document.getElementById('last-location');
-          el.dataset.lat = lat;
-          el.dataset.lng = lng;
+          el.dataset.lat = lat; el.dataset.lng = lng;
           try {
             const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
             const data = await res.json();
             el.value = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          } catch {
-            el.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          }
-          btn.textContent = '📍';
-          btn.disabled = false;
+          } catch { el.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
+          btn.textContent = '📍'; btn.disabled = false;
         }, () => {
           showToast('Could not get your location', 'info');
-          btn.textContent = '📍';
-          btn.disabled = false;
+          btn.textContent = '📍'; btn.disabled = false;
         });
       }
 
-      // Clear cached coords if user manually edits the location field
       document.getElementById('last-location').addEventListener('input', function () {
-        delete this.dataset.lat;
-        delete this.dataset.lng;
+        delete this.dataset.lat; delete this.dataset.lng;
       });
 
-      // ── Pets ─────────────────────────────────────────────────────────────────
+      // ── Filter ────────────────────────────────────────────────────────────────
+      function getFilteredPets() {
+        const q = filterSearch.toLowerCase();
+        return pets.filter(p => {
+          const matchType = !filterType || p.type === filterType;
+          const matchSearch = !q ||
+            (p.name     && p.name.toLowerCase().includes(q)) ||
+            (p.colour   && p.colour.toLowerCase().includes(q)) ||
+            (p.location && p.location.toLowerCase().includes(q)) ||
+            (p.details  && p.details.toLowerCase().includes(q));
+          return matchType && matchSearch;
+        });
+      }
+
+      function setTypeFilter(btn, type) {
+        filterType = type;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderPets();
+        if (_mapView) renderMap();
+      }
+
+      function onSearchInput() {
+        filterSearch = document.getElementById('search-input').value;
+        renderPets();
+        if (_mapView) renderMap();
+      }
+
+      // ── Share ─────────────────────────────────────────────────────────────────
+      function sharePet(id) {
+        const p = pets.find(x => x.id === id);
+        const msg = [
+          `🐾 Missing ${p.type}: ${p.name}`,
+          p.colour   ? p.colour              : '',
+          p.size     ? p.size + ' size'      : '',
+          p.location ? `Last seen: ${p.location}` : '',
+          p.contact  ? `Contact: ${p.contact}`    : '',
+          `See all missing pets: https://mark693361-bot.github.io/Lost-and-Found-pets/`
+        ].filter(Boolean).join(' · ');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+
+      // ── Pets ──────────────────────────────────────────────────────────────────
       async function loadAndRenderPets() {
         const grid = document.getElementById('pet-grid');
         grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
@@ -974,29 +1043,39 @@
 
       function renderPets() {
         const grid = document.getElementById('pet-grid');
-        if (pets.length === 0) {
+        const filtered = getFilteredPets();
+        if (!filtered.length) {
           grid.innerHTML = `
             <div class="empty-state" style="grid-column:1/-1">
-              <div class="empty-icon">🔍</div>
-              <p>No missing pets posted yet.<br>Use <strong>Post Missing Pet</strong> to add one.</p>
+              <div class="empty-icon">${pets.length === 0 ? '🔍' : '😕'}</div>
+              <p>${pets.length === 0
+                ? 'No missing pets posted yet.<br>Use <strong>Post Missing Pet</strong> to add one.'
+                : 'No listings match your search.'}</p>
             </div>`;
           return;
         }
-        grid.innerHTML = pets.map(p => `
+        grid.innerHTML = filtered.map(p => {
+          const hasReward = p.details && p.details.includes('💰');
+          return `
           <div class="pet-card">
-            <div class="pc-emoji">${EMOJIS[p.type] || '🐾'}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span class="species-label">${esc(p.type||'pet')}</span>
+              ${hasReward ? '<span class="reward-badge">💰 Reward</span>' : ''}
+            </div>
+            <div class="pc-emoji">${EMOJIS[p.type]||'🐾'}</div>
             <div class="pc-name">${esc(p.name)}</div>
             <div class="pc-meta">
-              ${p.size ? esc(p.size[0].toUpperCase() + p.size.slice(1)) : 'Unknown size'}
+              ${p.colour ? esc(p.colour)+' · ' : ''}${p.size ? esc(p.size[0].toUpperCase()+p.size.slice(1)) : 'Unknown size'}
             </div>
             ${p.location ? `<div class="pc-meta">📍 ${esc(p.location)}</div>` : ''}
             ${p.details  ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
             ${p.contact  ? `<div class="pc-meta">📞 ${esc(p.contact)}</div>` : ''}
-            <div class="pc-meta" style="margin-top:4px">🕐 ${timeAgo(new Date(p.created_at).getTime())}</div>
+            <div class="pc-meta" style="margin-top:2px">🕐 ${timeAgo(new Date(p.created_at).getTime())}</div>
+            <button class="btn-share"  onclick="sharePet('${p.id}')">📲 Share on WhatsApp</button>
             <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
             <button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>
-          </div>`
-        ).join('');
+          </div>`;
+        }).join('');
       }
 
       async function markFound(id) {
@@ -1021,18 +1100,14 @@
         showToast('Listing removed.', 'info');
       }
 
-      // ── Notifications ────────────────────────────────────────────────────────
+      // ── Notifications ─────────────────────────────────────────────────────────
       function renderNotifs() {
         const list = document.getElementById('notif-list');
-        if (notifs.length === 0) {
-          list.innerHTML = `
-            <div class="empty-state">
-              <div class="empty-icon">🔔</div>
-              <p>No notifications yet.</p>
-            </div>`;
+        if (!notifs.length) {
+          list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>`;
           return;
         }
-        list.innerHTML = `<div class="notif-list">` +
+        list.innerHTML = '<div class="notif-list">' +
           notifs.map(n => `
             <div class="notif-item">
               <div class="notif-icon">${n.icon}</div>
@@ -1040,12 +1115,11 @@
                 <div class="notif-msg">${n.msg}</div>
                 <div class="notif-time">${timeAgo(n.time)}</div>
               </div>
-            </div>`
-          ).join('') +
-          `</div>`;
+            </div>`).join('') +
+          '</div>';
       }
 
-      // ── Post missing pet ─────────────────────────────────────────────────────
+      // ── Post missing pet ──────────────────────────────────────────────────────
       document.getElementById('post-form').addEventListener('submit', async e => {
         e.preventDefault();
         clearErrors(e.target);
@@ -1055,18 +1129,19 @@
         const colour   = document.getElementById('colour').value.trim();
         const size     = document.getElementById('size').value;
         const details  = document.getElementById('extra-details').value.trim();
+        const reward   = document.getElementById('reward').value.trim();
         const contact  = document.getElementById('contact').value.trim();
         const locEl    = document.getElementById('last-location');
         const location = locEl.value.trim();
 
         let ok = true;
         if (!type) { showError('animal-type', 'Please select an animal type'); ok = false; }
-        if (!name) { showError('pet-name', 'Please enter the pet\'s name');    ok = false; }
+        if (!name) { showError('pet-name',    'Please enter the pet\'s name');  ok = false; }
         if (!ok) return;
 
         const submitBtn = e.target.querySelector('.btn-primary');
         submitBtn.disabled = true;
-        submitBtn.textContent = location ? 'Locating…' : 'Posting…';
+        submitBtn.textContent = 'Posting…';
 
         let lat = locEl.dataset.lat ? parseFloat(locEl.dataset.lat) : null;
         let lng = locEl.dataset.lng ? parseFloat(locEl.dataset.lng) : null;
@@ -1075,27 +1150,34 @@
           try {
             const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`);
             const data = await res.json();
-            if (data.length > 0) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
-          } catch { /* post without coords if geocoding fails */ }
+            if (data.length) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
+          } catch {}
         }
 
-        const { error: insertError } = await db.from('pets').insert({ type, name, size, details, contact, location, lat, lng });
+        const parts = [];
+        if (colour)  parts.push(`🎨 ${colour}`);
+        if (details) parts.push(details);
+        if (reward)  parts.push(`💰 Reward: ${reward}`);
+        const fullDetails = parts.join('\n');
+
+        const { error: insertError } = await db.from('pets').insert({
+          type, name, size, details: fullDetails, contact, location, lat, lng
+        });
 
         submitBtn.disabled = false;
         submitBtn.textContent = 'Post Missing Pet';
 
         if (insertError) { showToast('Failed to post listing. Please try again.', 'info'); return; }
 
-        addNotif(EMOJIS[type] || '🐾', `A missing ${type} named "${esc(name)}" has been posted.`);
+        addNotif(EMOJIS[type]||'🐾', `A missing ${type} named "${esc(name)}" has been posted.`);
         e.target.reset();
-        delete locEl.dataset.lat;
-        delete locEl.dataset.lng;
+        delete locEl.dataset.lat; delete locEl.dataset.lng;
         showToast(`${name} has been posted as missing!`, 'success');
         goTo('page-browse');
       });
 
-      // ── Report found pet ─────────────────────────────────────────────────────
-      document.getElementById('found-form').addEventListener('submit', e => {
+      // ── Report found pet + auto-match ─────────────────────────────────────────
+      document.getElementById('found-form').addEventListener('submit', async e => {
         e.preventDefault();
         clearErrors(e.target);
 
@@ -1108,14 +1190,46 @@
         if (!location) { showError('found-location', 'Please enter a location');      ok = false; }
         if (!ok) return;
 
-        addNotif(EMOJIS[type] || '🐾',
-          `A ${type} was found at ${esc(location)}.${desc ? ' ' + esc(desc) : ''}`);
+        const { data: matches } = await db.from('pets').select('*').eq('type', type).order('created_at', { ascending: false });
+        const resultsEl = document.getElementById('match-results');
+
+        if (matches && matches.length) {
+          resultsEl.innerHTML = `
+            <div class="match-alert">
+              <h3>🎯 ${matches.length} missing ${type}${matches.length > 1 ? 's' : ''} in the system — could this be one of them?</h3>
+              ${matches.slice(0, 3).map(p => `
+                <div class="match-card">
+                  <strong>${EMOJIS[p.type]||'🐾'} ${esc(p.name)}</strong>
+                  ${p.size   ? ` · ${esc(p.size)}`   : ''}
+                  ${p.details ? `<br><span style="color:#5a3520;font-size:0.85rem;white-space:pre-line">${esc(p.details)}</span>` : ''}
+                  ${p.location ? `<br>📍 ${esc(p.location)}` : ''}
+                  ${p.contact  ? `<br>📞 ${esc(p.contact)}`  : ''}
+                  <br><span style="font-size:0.75rem;color:#a07050">Posted ${timeAgo(new Date(p.created_at).getTime())}</span>
+                </div>`).join('')}
+              ${matches.length > 3 ? `<p style="font-size:0.82rem;color:#2e7d32;margin-top:6px">+${matches.length-3} more — <a href="#" onclick="goTo('page-browse');return false">Browse all listings</a></p>` : ''}
+            </div>`;
+        } else {
+          resultsEl.innerHTML = `
+            <div style="margin-top:16px;padding:14px;background:#fff8f2;border:1px solid #f0c8a0;border-radius:10px;font-size:0.9rem;color:#7a5030">
+              No missing ${type}s currently listed — but your report has been logged as a notification. If an owner posts later, they'll see it.
+            </div>`;
+        }
+
+        addNotif(EMOJIS[type]||'🐾', `A ${type} was found at ${esc(location)}.${desc ? ' '+esc(desc) : ''}`);
         e.target.reset();
         showToast('Thank you for reporting a found pet!', 'info');
-        goTo('page-notifs');
       });
 
-      // ── Init ─────────────────────────────────────────────────────────────────
+      // ── Real-time updates ─────────────────────────────────────────────────────
+      db.channel('pets-live')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, () => {
+          if (document.getElementById('page-browse').classList.contains('active')) {
+            loadAndRenderPets();
+          }
+        })
+        .subscribe();
+
+      // ── Init ──────────────────────────────────────────────────────────────────
       updateBadge();
       renderNotifs();
     </script>
