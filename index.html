@@ -266,6 +266,68 @@
 
     .btn-qr:hover { background: rgba(232,98,42,0.08); border-color: var(--accent); color: var(--accent); }
 
+    /* Sightings */
+    .btn-sighting {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.15s;
+    }
+
+    .btn-sighting:hover { background: rgba(232,98,42,0.08); border-color: var(--accent); color: var(--accent); }
+    .btn-sighting.open  { background: rgba(232,98,42,0.08); border-color: var(--accent); color: var(--accent); }
+
+    .sighting-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .sighting-panel.open { display: flex; }
+
+    .sighting-item {
+      background: var(--bg-notif);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      color: var(--text-mid);
+    }
+
+    .sighting-item .s-time { font-size: 0.7rem; color: var(--text-faint); }
+
+    .sighting-form { display: flex; flex-direction: column; gap: 6px; }
+
+    .sighting-form input {
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+
+    .btn-sighting-submit {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-sighting-submit:hover { opacity: 0.88; }
+
     .btn-report {
       background: none;
       border: none;
@@ -1426,8 +1488,17 @@
             ${p.details  ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
             ${p.contact  ? `<button class="pc-contact" id="contact-${p.id}" onclick="revealContact('${p.id}')">📞 Tap to reveal contact</button>` : ''}
             <div class="pc-meta" style="margin-top:2px">🕐 ${timeAgo(ts)}</div>
-            <button class="btn-share"  onclick="sharePet('${p.id}')">📲 Share on WhatsApp</button>
-            <button class="btn-qr"     onclick="showQR('${p.id}')">📱 Get QR code</button>
+            <button class="btn-share"    onclick="sharePet('${p.id}')">📲 Share on WhatsApp</button>
+            <button class="btn-qr"       onclick="showQR('${p.id}')">📱 Get QR code</button>
+            <button class="btn-sighting" id="sighting-btn-${p.id}" onclick="toggleSightings('${p.id}')">👁 Sightings</button>
+            <div class="sighting-panel" id="sighting-panel-${p.id}">
+              <div id="sighting-list-${p.id}" style="display:flex;flex-direction:column;gap:6px"></div>
+              <div class="sighting-form">
+                <input id="s-msg-${p.id}" type="text" placeholder="What did you see?" />
+                <input id="s-loc-${p.id}" type="text" placeholder="Where? e.g. near the park" />
+                <button class="btn-sighting-submit" onclick="submitSighting('${p.id}')">Add sighting</button>
+              </div>
+            </div>
             <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
             <button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>
             <button class="btn-report" onclick="reportListing('${p.id}')">🚩 Report</button>
@@ -1596,6 +1667,48 @@
         e.target.reset();
         showToast('Thank you for reporting a found pet!','info');
       });
+
+      // ── Sightings ─────────────────────────────────────────────────────────────
+      async function toggleSightings(petId) {
+        const panel = document.getElementById(`sighting-panel-${petId}`);
+        const btn   = document.getElementById(`sighting-btn-${petId}`);
+        const isOpen = panel.classList.contains('open');
+        panel.classList.toggle('open', !isOpen);
+        btn.classList.toggle('open', !isOpen);
+        btn.textContent = isOpen ? '👁 Sightings' : '👁 Hide sightings';
+        if (!isOpen) loadSightings(petId);
+      }
+
+      async function loadSightings(petId) {
+        const list = document.getElementById(`sighting-list-${petId}`);
+        list.innerHTML = `<div style="font-size:0.78rem;color:var(--text-faint)">Loading…</div>`;
+        const {data, error} = await db.from('sightings')
+          .select('*').eq('pet_id', petId).order('created_at', {ascending: false});
+        if (error || !data.length) {
+          list.innerHTML = `<div style="font-size:0.78rem;color:var(--text-faint)">No sightings yet — be the first to add one.</div>`;
+          return;
+        }
+        list.innerHTML = data.map(s => `
+          <div class="sighting-item">
+            ${s.message ? `<div>${esc(s.message)}</div>` : ''}
+            ${s.location ? `<div>📍 ${esc(s.location)}</div>` : ''}
+            <div class="s-time">🕐 ${timeAgo(new Date(s.created_at).getTime())}</div>
+          </div>`).join('');
+      }
+
+      async function submitSighting(petId) {
+        const msg = document.getElementById(`s-msg-${petId}`).value.trim();
+        const loc = document.getElementById(`s-loc-${petId}`).value.trim();
+        if (!msg && !loc) { showToast('Please enter a message or location','info'); return; }
+        const {error} = await db.from('sightings').insert({
+          pet_id: petId, message: msg, location: loc
+        });
+        if (error) { showToast('Could not save sighting','info'); return; }
+        document.getElementById(`s-msg-${petId}`).value = '';
+        document.getElementById(`s-loc-${petId}`).value = '';
+        loadSightings(petId);
+        showToast('Sighting added!','success');
+      }
 
       // ── Real-time ─────────────────────────────────────────────────────────────
       db.channel('pets-live')
