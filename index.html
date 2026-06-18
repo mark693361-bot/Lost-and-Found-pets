@@ -10,31 +10,88 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
+    :root {
+      --bg-page:    #fff8f2;
+      --bg-card:    #ffffff;
+      --bg-input:   #fffaf6;
+      --bg-nav:     #ffffff;
+      --bg-notif:   #fff8f2;
+      --bg-action:  linear-gradient(145deg,#ffffff 0%,#fff0e6 100%);
+      --bg-pet:     linear-gradient(135deg,#fde8d8 0%,#fce8b4 100%);
+      --text:       #2c1a0e;
+      --text-mid:   #5a3520;
+      --text-muted: #7a5030;
+      --text-faint: #a07050;
+      --border:     #f0c8a0;
+      --border-pet: #f0a870;
+      --accent:     #e8622a;
+      --accent2:    #f4943a;
+      --shadow:     rgba(0,0,0,0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-page:    #151008;
+      --bg-card:    #221508;
+      --bg-input:   #1a0e04;
+      --bg-nav:     #1a0e04;
+      --bg-notif:   #1a0e04;
+      --bg-action:  linear-gradient(145deg,#221508 0%,#2e1a08 100%);
+      --bg-pet:     linear-gradient(135deg,#2e1a08 0%,#261408 100%);
+      --text:       #f0d8c0;
+      --text-mid:   #d0a880;
+      --text-muted: #b08060;
+      --text-faint: #806040;
+      --border:     #5a3520;
+      --border-pet: #7a4520;
+      --accent:     #f4943a;
+      --accent2:    #e8622a;
+      --shadow:     rgba(0,0,0,0.35);
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #fff8f2;
-      color: #2c1a0e;
+      background: var(--bg-page);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      transition: background 0.2s, color 0.2s;
     }
 
     header {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
       color: white;
-      padding: 20px 32px;
+      padding: 18px 32px;
       text-align: center;
       box-shadow: 0 3px 10px rgba(232,98,42,0.3);
+      position: relative;
     }
 
     header h1 { font-size: 1.9rem; letter-spacing: 1px; }
 
+    #theme-toggle {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.2);
+      border: none;
+      border-radius: 50px;
+      padding: 6px 12px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #theme-toggle:hover { background: rgba(255,255,255,0.35); }
+
     nav {
-      background: white;
-      border-bottom: 2px solid #f0c8a0;
+      background: var(--bg-nav);
+      border-bottom: 2px solid var(--border);
       display: flex;
       justify-content: center;
       gap: 4px;
@@ -43,7 +100,7 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px var(--shadow);
     }
 
     .nav-btn {
@@ -54,19 +111,19 @@
       font-size: 0.9rem;
       font-family: inherit;
       font-weight: 600;
-      color: #7a5030;
+      color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s;
       position: relative;
     }
 
-    .nav-btn:hover { background: #fff0e6; color: #e8622a; }
+    .nav-btn:hover { background: rgba(232,98,42,0.08); color: var(--accent); }
 
     #back-btn { display: none; align-items: center; gap: 5px; margin-right: auto; }
     #back-btn.visible { display: flex; }
 
     .nav-btn.active {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
       color: white;
       border-color: transparent;
       box-shadow: 0 3px 0 #b84a18;
@@ -90,47 +147,46 @@
 
     main { flex: 1; }
 
-    .page { display: none; max-width: 760px; margin: 32px auto; padding: 0 16px 40px; }
+    .page { display: none; max-width: 780px; margin: 32px auto; padding: 0 16px 40px; }
     .page.active { display: block; }
 
     .card {
-      background: white;
+      background: var(--bg-card);
       border-radius: 16px;
       padding: 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      border-left: 5px solid #e8622a;
+      box-shadow: 0 2px 12px var(--shadow);
+      border-left: 5px solid var(--accent);
     }
 
-    h2 { color: #e8622a; font-size: 1.25rem; margin-bottom: 20px; }
+    h2 { color: var(--accent); font-size: 1.25rem; margin-bottom: 20px; }
 
     form { display: flex; flex-direction: column; gap: 16px; }
     .field { display: flex; flex-direction: column; gap: 6px; }
-
-    label { font-weight: 600; font-size: 0.9rem; color: #5a3520; }
+    label { font-weight: 600; font-size: 0.9rem; color: var(--text-mid); }
 
     input, select, textarea {
       width: 100%;
       padding: 10px 14px;
-      border: 2px solid #f0c8a0;
+      border: 2px solid var(--border);
       border-radius: 8px;
       font-size: 1rem;
       font-family: inherit;
-      background: #fffaf6;
-      color: #2c1a0e;
-      transition: border-color 0.2s;
+      background: var(--bg-input);
+      color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
     }
 
     input:focus, select:focus, textarea:focus {
       outline: none;
-      border-color: #e8622a;
-      background: white;
+      border-color: var(--accent);
+      background: var(--bg-card);
     }
 
     input.err, select.err, textarea.err { border-color: #e53935; }
     .error-msg { color: #e53935; font-size: 0.8rem; }
 
     .btn-primary {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
       color: white;
       border: none;
       border-radius: 50px;
@@ -145,6 +201,7 @@
 
     .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 #b84a18; }
     .btn-primary:active { transform: translateY(2px);  box-shadow: 0 2px 0 #b84a18; }
+    .btn-primary:disabled { opacity: 0.6; transform: none; cursor: not-allowed; }
 
     .btn-green {
       background: #4caf50;
@@ -152,73 +209,290 @@
       border: none;
       border-radius: 50px;
       padding: 8px 16px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 3px 0 #2e7d32;
       transition: transform 0.1s, box-shadow 0.1s;
       width: 100%;
-      margin-top: auto;
     }
 
     .btn-green:hover  { transform: translateY(-1px); box-shadow: 0 4px 0 #2e7d32; }
     .btn-green:active { transform: translateY(2px);  box-shadow: 0 1px 0 #2e7d32; }
 
+    .btn-remove {
+      background: none;
+      border: 1.5px solid #e57373;
+      border-radius: 50px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #c62828;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+    }
+
+    .btn-remove:hover { background: #ffebee; }
+
+    .btn-share {
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 6px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 2px 0 #1a9e4a;
+      transition: opacity 0.15s;
+    }
+
+    .btn-share:hover { opacity: 0.88; }
+
+    .btn-qr {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.15s;
+    }
+
+    .btn-qr:hover { background: rgba(232,98,42,0.08); border-color: var(--accent); color: var(--accent); }
+
+    .btn-report {
+      background: none;
+      border: none;
+      padding: 4px 0;
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      transition: color 0.15s;
+    }
+
+    .btn-report:hover { color: #e53935; }
+
     /* Pet grid */
     .pet-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
       gap: 16px;
     }
 
     .pet-card {
-      background: linear-gradient(135deg, #fde8d8 0%, #fce8b4 100%);
+      background: var(--bg-pet);
       border-radius: 12px;
-      border: 2px solid #f0a870;
+      border: 2px solid var(--border-pet);
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
+      transition: border-color 0.2s;
     }
 
-    .pc-emoji  { font-size: 2.5rem; line-height: 1; }
-    .pc-name   { font-weight: 700; font-size: 1.05rem; }
-    .pc-meta   { font-size: 0.78rem; color: #7a5030; }
-    .pc-detail { font-size: 0.85rem; color: #5a3520; flex: 1; margin-bottom: 8px; white-space: pre-line; }
+    .pet-card.old-listing { border-color: #ff9800; }
 
-    /* Species badge */
+    .pc-emoji  { font-size: 2.5rem; line-height: 1; }
+    .pc-name   { font-weight: 700; font-size: 1.05rem; color: var(--text); }
+    .pc-meta   { font-size: 0.76rem; color: var(--text-muted); }
+    .pc-detail { font-size: 0.84rem; color: var(--text-mid); flex: 1; margin-bottom: 6px; white-space: pre-line; }
+
+    .pc-contact {
+      font-size: 0.76rem;
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      text-align: left;
+      padding: 0;
+    }
+
+    .pc-contact.revealed { color: var(--text-muted); text-decoration: none; cursor: default; }
+
+    /* Badges */
     .species-label {
       display: inline-block;
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
       color: white;
-      font-size: 0.68rem;
+      font-size: 0.67rem;
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 50px;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      align-self: flex-start;
     }
 
-    /* Reward badge */
     .reward-badge {
       display: inline-block;
       background: linear-gradient(135deg, #ffd600 0%, #ffab00 100%);
       color: #5d4037;
-      font-size: 0.68rem;
+      font-size: 0.67rem;
       font-weight: 700;
       padding: 2px 8px;
       border-radius: 50px;
-      letter-spacing: 0.3px;
-      align-self: flex-start;
     }
+
+    .age-badge {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 0.67rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+      border: 1px solid #ffcc02;
+    }
+
+    .dist-badge {
+      display: inline-block;
+      background: rgba(76,175,80,0.15);
+      color: #2e7d32;
+      font-size: 0.67rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+
+    /* Browse header */
+    .browse-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .view-toggles { display: flex; gap: 6px; }
+
+    .view-toggle {
+      background: none;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .view-toggle:hover { background: rgba(232,98,42,0.08); }
+
+    .view-toggle.active {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Filter bar */
+    .filter-bar { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+    .filter-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .filter-search {
+      flex: 1;
+      min-width: 180px;
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--bg-card);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+
+    .filter-search:focus { outline: none; border-color: var(--accent); }
+
+    .btn-nearme {
+      background: none;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-nearme:hover  { background: rgba(76,175,80,0.1); border-color: #4caf50; color: #2e7d32; }
+    .btn-nearme.active { background: #4caf50; color: white; border-color: transparent; }
+
+    .type-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .filter-btn {
+      background: none;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      padding: 5px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover { background: rgba(232,98,42,0.08); }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white;
+      border-color: transparent;
+    }
+
+    /* Load more */
+    .load-more-wrap { text-align: center; margin-top: 20px; }
+
+    /* Map */
+    #pet-map {
+      display: none;
+      height: 440px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+
+    /* Location row */
+    .field-row { display: flex; gap: 8px; align-items: stretch; }
+    .field-row input { flex: 1; }
+
+    .btn-locate {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0 14px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .btn-locate:hover    { opacity: 0.85; }
+    .btn-locate:disabled { opacity: 0.5; cursor: default; }
 
     /* Notifications */
     .notif-list { display: flex; flex-direction: column; gap: 10px; }
 
     .notif-item {
-      background: #fff8f2;
-      border: 1px solid #f0c8a0;
+      background: var(--bg-notif);
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 12px 16px;
       display: flex;
@@ -228,10 +502,10 @@
 
     .notif-icon { font-size: 1.4rem; flex-shrink: 0; }
     .notif-msg  { font-size: 0.9rem; }
-    .notif-time { font-size: 0.75rem; color: #a07050; margin-top: 3px; }
+    .notif-time { font-size: 0.75rem; color: var(--text-faint); margin-top: 3px; }
 
     /* Empty state */
-    .empty-state { text-align: center; padding: 40px 16px; color: #a07050; }
+    .empty-state { text-align: center; padding: 40px 16px; color: var(--text-faint); }
     .empty-icon  { font-size: 3rem; margin-bottom: 10px; }
 
     /* Toast */
@@ -254,7 +528,39 @@
 
     .toast.show    { transform: translateY(0); opacity: 1; }
     .toast.success { border-left: 4px solid #4caf50; }
-    .toast.info    { border-left: 4px solid #e8622a; }
+    .toast.info    { border-left: 4px solid var(--accent); }
+
+    /* QR Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+    .modal-box {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 300px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .modal-box h3 { color: var(--accent); font-size: 1.1rem; text-align: center; }
+    .modal-box p  { font-size: 0.82rem; color: var(--text-muted); text-align: center; }
 
     /* Action cards */
     .action-cards {
@@ -263,14 +569,14 @@
       justify-content: center;
       flex-wrap: wrap;
       padding: 28px 16px;
-      background: #fff8f2;
-      border-bottom: 2px solid #f0c8a0;
+      background: var(--bg-page);
+      border-bottom: 2px solid var(--border);
     }
 
     .action-card {
       width: 5cm; height: 6cm;
-      background: linear-gradient(145deg, #ffffff 0%, #fff0e6 100%);
-      border: 2px solid #f0c8a0;
+      background: var(--bg-action);
+      border: 2px solid var(--border);
       border-radius: 16px;
       display: flex;
       flex-direction: column;
@@ -283,7 +589,7 @@
       text-align: center;
       padding: 16px;
       font-family: inherit;
-      color: #2c1a0e;
+      color: var(--text);
       position: relative;
       overflow: hidden;
     }
@@ -292,7 +598,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
       opacity: 0;
       transition: opacity 0.2s;
       border-radius: 14px;
@@ -303,18 +609,18 @@
     .action-card:active { transform: translateY(2px); box-shadow: 0 2px 0 #d4a070; }
 
     .action-card-icon  { font-size: 2.4rem; line-height: 1; position: relative; }
-    .action-card-title { font-size: 0.95rem; font-weight: 700; color: #e8622a; position: relative; }
-    .action-card-desc  { font-size: 0.75rem; color: #7a5030; line-height: 1.4; position: relative; }
+    .action-card-title { font-size: 0.95rem; font-weight: 700; color: var(--accent); position: relative; }
+    .action-card-desc  { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; position: relative; }
 
     /* Guide */
     .guide-section { margin-bottom: 24px; }
 
     .guide-section h3 {
       font-size: 1rem;
-      color: #e8622a;
+      color: var(--accent);
       margin-bottom: 10px;
       padding-bottom: 6px;
-      border-bottom: 2px solid #f0c8a0;
+      border-bottom: 2px solid var(--border);
     }
 
     .guide-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
@@ -323,8 +629,8 @@
       display: flex;
       align-items: flex-start;
       gap: 10px;
-      background: #fff8f2;
-      border: 1px solid #f0c8a0;
+      background: var(--bg-notif);
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 10px 14px;
       font-size: 0.88rem;
@@ -335,158 +641,16 @@
 
     .guide-tip {
       background: linear-gradient(135deg, #fff3e0 0%, #fce8b4 100%);
-      border: 2px solid #f4943a;
+      border: 2px solid var(--accent2);
       border-radius: 12px;
       padding: 14px 18px;
       font-size: 0.88rem;
       line-height: 1.6;
       margin-top: 8px;
+      color: var(--text-mid);
     }
 
-    .guide-tip strong { color: #e8622a; }
-
-    /* Browse header */
-    .browse-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .view-toggles { display: flex; gap: 6px; }
-
-    .view-toggle {
-      background: none;
-      border: 2px solid #f0c8a0;
-      border-radius: 50px;
-      padding: 6px 14px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: inherit;
-      color: #7a5030;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .view-toggle:hover { background: #fff0e6; }
-
-    .view-toggle.active {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
-      color: white;
-      border-color: transparent;
-    }
-
-    /* Map */
-    #pet-map {
-      display: none;
-      height: 440px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 2px solid #f0c8a0;
-    }
-
-    /* Location row */
-    .field-row { display: flex; gap: 8px; align-items: stretch; }
-    .field-row input { flex: 1; }
-
-    .btn-locate {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 0 14px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: opacity 0.15s;
-    }
-
-    .btn-locate:hover    { opacity: 0.85; }
-    .btn-locate:disabled { opacity: 0.5; cursor: default; }
-
-    /* Card buttons */
-    .btn-remove {
-      background: none;
-      border: 1.5px solid #e57373;
-      border-radius: 50px;
-      padding: 5px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #c62828;
-      cursor: pointer;
-      width: 100%;
-      transition: all 0.15s;
-    }
-
-    .btn-remove:hover { background: #ffebee; }
-
-    .btn-share {
-      background: #25D366;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 6px 12px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      box-shadow: 0 2px 0 #1a9e4a;
-      transition: opacity 0.15s;
-    }
-
-    .btn-share:hover { opacity: 0.88; }
-
-    /* Filter bar */
-    .filter-bar { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
-
-    .filter-search {
-      width: 100%;
-      padding: 10px 16px;
-      border: 2px solid #f0c8a0;
-      border-radius: 50px;
-      font-size: 0.95rem;
-      font-family: inherit;
-      background: white;
-      color: #2c1a0e;
-      transition: border-color 0.2s;
-    }
-
-    .filter-search:focus { outline: none; border-color: #e8622a; }
-
-    .type-filters { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    .filter-btn {
-      background: none;
-      border: 2px solid #f0c8a0;
-      border-radius: 50px;
-      padding: 5px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      font-family: inherit;
-      color: #7a5030;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .filter-btn:hover { background: #fff0e6; }
-
-    .filter-btn.active {
-      background: linear-gradient(135deg, #e8622a 0%, #f4943a 100%);
-      color: white;
-      border-color: transparent;
-    }
-
-    /* Live dot */
-    .live-dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      background: #4caf50;
-      border-radius: 50%;
-      margin-right: 6px;
-      animation: blink 2s infinite;
-    }
-
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .guide-tip strong { color: var(--accent); }
 
     /* Match alert */
     .match-alert {
@@ -509,12 +673,24 @@
       line-height: 1.6;
     }
 
+    /* Live dot */
+    .live-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      background: #4caf50;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
     footer {
       text-align: center;
       padding: 20px;
-      color: #a07050;
+      color: var(--text-faint);
       font-size: 0.82rem;
-      border-top: 1px solid #f0c8a0;
+      border-top: 1px solid var(--border);
     }
   </style>
   </head>
@@ -522,6 +698,7 @@
 
     <header>
       <h1>🐾 Lost Pet Finder</h1>
+      <button id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
     </header>
 
     <nav>
@@ -602,7 +779,7 @@
               <label for="contact">Your contact info</label>
               <input id="contact" type="text" placeholder="e.g. 555-0123 or email@example.com" />
             </div>
-            <button type="submit" class="btn-primary">Post Missing Pet</button>
+            <button type="submit" class="btn-primary" id="post-submit-btn">Post Missing Pet</button>
           </form>
         </div>
       </div>
@@ -617,8 +794,11 @@
           </div>
         </div>
         <div class="filter-bar">
-          <input class="filter-search" id="search-input" type="text"
-            placeholder="🔍 Search by name, colour, location…" oninput="onSearchInput()" />
+          <div class="filter-row">
+            <input class="filter-search" id="search-input" type="text"
+              placeholder="🔍 Search by name, colour, location…" oninput="onSearchInput()" />
+            <button class="btn-nearme" id="nearme-btn" onclick="toggleNearMe()">📍 Near me</button>
+          </div>
           <div class="type-filters">
             <button class="filter-btn active" onclick="setTypeFilter(this,'')">All</button>
             <button class="filter-btn" onclick="setTypeFilter(this,'dog')">🐕 Dogs</button>
@@ -628,6 +808,9 @@
           </div>
         </div>
         <div class="pet-grid" id="pet-grid"></div>
+        <div class="load-more-wrap" id="load-more-wrap" style="display:none">
+          <button class="btn-primary" onclick="loadMore()">Load more</button>
+        </div>
         <div id="pet-map"></div>
       </div>
 
@@ -689,30 +872,29 @@
               <li data-icon="👁️">Note eye colour; heterochromia (two different colours) is very distinctive.</li>
               <li data-icon="🏠">State whether the cat is <strong>indoor-only or indoor/outdoor</strong> — indoor cats rarely go further than the immediate garden.</li>
               <li data-icon="🌙">Cats are most active at <strong>dawn and dusk</strong>; search under decks, in sheds, and inside drains.</li>
-              <li data-icon="🥫">Leave an unwashed piece of bedding or litter outside — familiar scents draw cats home.</li>
+              <li data-icon="🥫">Leave unwashed bedding or litter outside — familiar scents draw cats home.</li>
             </ul>
           </div>
           <div class="guide-section">
             <h3>🐦 Bird</h3>
             <ul class="guide-list">
               <li data-icon="🌈">Describe <strong>exact feather colours</strong> per region — head, wings, chest, tail, beak — and any mutations (lutino, albino, pied).</li>
-              <li data-icon="💍">Note any <strong>leg bands</strong> (colour and number) — these can identify the breeder and owner.</li>
+              <li data-icon="💍">Note any <strong>leg bands</strong> — colour and number sequence can identify the breeder and owner.</li>
               <li data-icon="🗣️">List any words or phrases the bird can say — a bird calling its own name is a strong identifier.</li>
-              <li data-icon="✈️">Birds can travel kilometres quickly; contact avian vets, bird clubs, and pet shops nearby.</li>
-              <li data-icon="🔊">Play a recording of the species' call outdoors — it may attract the bird back.</li>
+              <li data-icon="✈️">Birds travel kilometres quickly; contact avian vets, bird clubs, and pet shops nearby.</li>
             </ul>
           </div>
           <div class="guide-section">
             <h3>🐾 Other Animals</h3>
             <ul class="guide-list">
               <li data-icon="🐇"><strong>Rabbits:</strong> note ear length, lop vs. upright, coat colour and length.</li>
-              <li data-icon="🐹"><strong>Small rodents:</strong> specify size, colour, and any patches. Search at night — they are most active after dark.</li>
+              <li data-icon="🐹"><strong>Small rodents:</strong> specify size, colour, and any patches. Search at night.</li>
               <li data-icon="🦎"><strong>Reptiles:</strong> include species name, length, and scale colour pattern.</li>
-              <li data-icon="🐠"><strong>Exotic pets:</strong> note any legal ownership documents — shelters may need these before returning the animal.</li>
+              <li data-icon="🐠"><strong>Exotic pets:</strong> note any legal ownership documents shelters may need.</li>
             </ul>
           </div>
           <div class="guide-tip">
-            <strong>General tip:</strong> The more specific your listing, the faster a match is confirmed. "Golden retriever mix, cream chest, red collar, answers to Biscuit" gets far more responses than "brown dog, medium size."
+            <strong>Tip:</strong> "Golden retriever mix, cream chest, red collar, answers to Biscuit" gets far more responses than "brown dog, medium size."
           </div>
           <br>
           <button class="btn-primary" onclick="goTo('page-post')">Go to Post Missing Pet →</button>
@@ -726,15 +908,15 @@
           <div class="guide-section">
             <h3>How to Search Effectively</h3>
             <ul class="guide-list">
-              <li data-icon="👀">Scan all listings carefully — descriptions may be incomplete; look beyond the name and check breed, colour, and size.</li>
-              <li data-icon="📅">Check when the pet was posted. Recent posts are more likely still missing.</li>
-              <li data-icon="📍">Note the area. A pet rarely travels far from where it was last seen.</li>
+              <li data-icon="👀">Scan all listings carefully — look beyond the name and check breed, colour, and size.</li>
+              <li data-icon="📅">Check when the pet was posted. Listings older than 2 weeks are flagged with an amber border.</li>
+              <li data-icon="📍">Use the <strong>Near me</strong> filter to see pets lost close to your location.</li>
             </ul>
           </div>
           <div class="guide-section">
             <h3>If You Think You Found a Match</h3>
             <ul class="guide-list">
-              <li data-icon="📞">Contact the owner as soon as possible — time is critical.</li>
+              <li data-icon="📞">Tap <strong>Reveal contact</strong> on the listing and reach out immediately — time is critical.</li>
               <li data-icon="📸">Offer to send a photo to confirm it's the right animal before arranging a meetup.</li>
               <li data-icon="🏠">Arrange the reunion in a familiar, safe location for the pet.</li>
             </ul>
@@ -742,12 +924,12 @@
           <div class="guide-section">
             <h3>Marking a Pet as Found</h3>
             <ul class="guide-list">
-              <li data-icon="🎉">Use the <strong>I Found This Pet!</strong> button on any listing once you've confirmed the match.</li>
-              <li data-icon="🔔">The listing is removed from the board to keep results up to date.</li>
+              <li data-icon="🎉">Use the <strong>I Found This Pet!</strong> button once you've confirmed the match.</li>
+              <li data-icon="🗑️">The listing is removed from the board to keep results up to date.</li>
             </ul>
           </div>
           <div class="guide-tip">
-            <strong>Tip:</strong> Even if no listing matches, use <em>Report Found Pet</em> to log the animal — the owner may post later and see your report in Notifications.
+            <strong>Tip:</strong> Use the QR code button to generate a printable tag for a pet's collar — anyone who scans it can contact the owner instantly.
           </div>
           <br>
           <button class="btn-primary" onclick="goTo('page-browse')">Go to Browse Listings →</button>
@@ -762,25 +944,24 @@
             <h3>What to Do Immediately</h3>
             <ul class="guide-list">
               <li data-icon="🛡️">Ensure the animal is safe. Keep it away from traffic and other animals.</li>
-              <li data-icon="🏷️">Check for a collar tag or microchip number — vets can scan for chips for free.</li>
+              <li data-icon="🏷️">Check for a collar tag or microchip — vets can scan chips for free.</li>
               <li data-icon="📸">Take a clear photo in good lighting so owners can confirm the match.</li>
             </ul>
           </div>
           <div class="guide-section">
             <h3>Writing a Good Description</h3>
             <ul class="guide-list">
-              <li data-icon="🎨">Include specific colours, markings, and distinctive features (scars, patches, eye colour).</li>
+              <li data-icon="🎨">Include specific colours, markings, and distinctive features.</li>
               <li data-icon="📏">Note the approximate size and estimated breed if known.</li>
-              <li data-icon="😺">Describe the animal's behaviour — calm, scared, friendly — this helps owners recognise their pet.</li>
+              <li data-icon="😺">Describe the animal's behaviour — calm, scared, friendly.</li>
               <li data-icon="📌">Be precise about the location: street name, nearby landmark, or neighbourhood.</li>
             </ul>
           </div>
           <div class="guide-section">
             <h3>Next Steps After Reporting</h3>
             <ul class="guide-list">
-              <li data-icon="🔍">Browse the missing pets list to see if there's already a matching post.</li>
-              <li data-icon="🏥">If the animal appears injured or distressed, contact your local vet or animal shelter.</li>
-              <li data-icon="📢">Share on local community boards or social media to reach more potential owners.</li>
+              <li data-icon="🔍">Browse the missing pets list — the app will auto-match by animal type.</li>
+              <li data-icon="🏥">If the animal appears injured, contact your local vet or animal shelter.</li>
             </ul>
           </div>
           <div class="guide-tip">
@@ -797,24 +978,62 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- QR Modal -->
+    <div class="modal-overlay" id="qr-modal" onclick="closeQROverlay(event)">
+      <div class="modal-box">
+        <h3 id="qr-title">QR Code</h3>
+        <div id="qr-container"></div>
+        <p>Scan to see contact info · Print and attach to collar</p>
+        <button class="btn-primary" onclick="closeQR()">Close</button>
+      </div>
+    </div>
+
     <script>
       const db = supabase.createClient(
         'https://exdaerddjzklfgvxombf.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4ZGFlcmRkanprbGZndnhvbWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ2MjMsImV4cCI6MjA5NTIxMDYyM30.kbTBIu2tHgcW0M1Df7G_S02_kwbBbYQyWp67luJR7Ac'
       );
 
-      const EMOJIS = { dog: '🐕', cat: '🐈', bird: '🐦', other: '🐾' };
+      const EMOJIS   = { dog:'🐕', cat:'🐈', bird:'🐦', other:'🐾' };
+      const PAGE_SIZE = 9;
+      const COOLDOWN  = 60000;
+      const OLD_DAYS  = 14;
 
-      let pets   = [];
-      let notifs = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
-      let unread = parseInt(localStorage.getItem('lpf_unread')   || '0');
+      let pets         = [];
+      let notifs       = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
+      let unread       = parseInt(localStorage.getItem('lpf_unread')   || '0');
+      let reported     = new Set(JSON.parse(localStorage.getItem('lpf_reported') || '[]'));
       let filterType   = '';
       let filterSearch = '';
+      let nearMeActive = false;
+      let userLat      = null;
+      let userLng      = null;
+      let currentPage  = 1;
 
+      const appUrl = () => window.location.origin + window.location.pathname;
+
+      // ── Dark mode ─────────────────────────────────────────────────────────────
+      function toggleTheme() {
+        const dark = document.body.getAttribute('data-theme') === 'dark';
+        document.body.setAttribute('data-theme', dark ? '' : 'dark');
+        document.getElementById('theme-toggle').textContent = dark ? '🌙' : '☀️';
+        localStorage.setItem('lpf_theme', dark ? 'light' : 'dark');
+      }
+
+      if (localStorage.getItem('lpf_theme') === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+        document.getElementById('theme-toggle').textContent = '☀️';
+      }
+
+      // ── Helpers ───────────────────────────────────────────────────────────────
       function saveNotifs() {
-        localStorage.setItem('lpf_notifs', JSON.stringify(notifs));
-        localStorage.setItem('lpf_unread', String(unread));
+        localStorage.setItem('lpf_notifs',   JSON.stringify(notifs));
+        localStorage.setItem('lpf_unread',   String(unread));
         updateBadge();
+      }
+
+      function saveReported() {
+        localStorage.setItem('lpf_reported', JSON.stringify([...reported]));
       }
 
       function esc(s) {
@@ -826,9 +1045,23 @@
       function timeAgo(ts) {
         const sec = Math.floor((Date.now() - ts) / 1000);
         if (sec < 60)    return 'just now';
-        if (sec < 3600)  return Math.floor(sec / 60) + 'm ago';
-        if (sec < 86400) return Math.floor(sec / 3600) + 'h ago';
-        return Math.floor(sec / 86400) + 'd ago';
+        if (sec < 3600)  return Math.floor(sec/60)   + 'm ago';
+        if (sec < 86400) return Math.floor(sec/3600)  + 'h ago';
+        return Math.floor(sec/86400) + 'd ago';
+      }
+
+      function daysSince(ts) { return (Date.now() - ts) / 86400000; }
+
+      function haversine(la1, lo1, la2, lo2) {
+        const R = 6371, d2r = Math.PI/180;
+        const dLat = (la2-la1)*d2r, dLon = (lo2-lo1)*d2r;
+        const a = Math.sin(dLat/2)**2 +
+          Math.cos(la1*d2r)*Math.cos(la2*d2r)*Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      }
+
+      function fmtDist(km) {
+        return km < 1 ? (km*1000).toFixed(0)+'m' : km.toFixed(1)+'km';
       }
 
       function showToast(msg, type) {
@@ -863,22 +1096,18 @@
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
-        const navBtn = document.querySelector(`[data-page="${pageId}"]`);
-        if (navBtn) navBtn.classList.add('active');
+        const nb = document.querySelector(`[data-page="${pageId}"]`);
+        if (nb) nb.classList.add('active');
         document.getElementById('back-btn').classList.toggle('visible', _history.length > 0);
-
-        const guidePages = ['page-guide-post','page-guide-browse','page-guide-report'];
-        document.querySelector('.action-cards').style.display = guidePages.includes(pageId) ? 'none' : '';
-
-        if (pageId === 'page-browse') loadAndRenderPets();
+        const guides = ['page-guide-post','page-guide-browse','page-guide-report'];
+        document.querySelector('.action-cards').style.display = guides.includes(pageId) ? 'none' : '';
+        if (pageId === 'page-browse') { currentPage = 1; loadAndRenderPets(); }
         if (pageId === 'page-notifs') { unread = 0; saveNotifs(); renderNotifs(); }
       }
 
-      function currentPage() { return document.querySelector('.page.active')?.id || 'page-post'; }
-
-      function goTo(pageId) { _history.push(currentPage()); _activate(pageId); }
-
-      function goBack() { if (_history.length) _activate(_history.pop()); }
+      function currentPageId() { return document.querySelector('.page.active')?.id || 'page-post'; }
+      function goTo(id)   { _history.push(currentPageId()); _activate(id); }
+      function goBack()   { if (_history.length) _activate(_history.pop()); }
 
       document.querySelectorAll('.nav-btn[data-page]').forEach(btn => {
         btn.addEventListener('click', () => { _history = []; _activate(btn.dataset.page); });
@@ -889,11 +1118,9 @@
         const btn = document.getElementById('notifs-btn');
         let badge = btn.querySelector('.badge');
         if (unread > 0) {
-          if (!badge) { badge = document.createElement('span'); badge.className = 'badge'; btn.appendChild(badge); }
+          if (!badge) { badge = document.createElement('span'); badge.className='badge'; btn.appendChild(badge); }
           badge.textContent = unread > 9 ? '9+' : unread;
-        } else {
-          if (badge) badge.remove();
-        }
+        } else if (badge) badge.remove();
       }
 
       function addNotif(icon, msg) {
@@ -904,225 +1131,305 @@
       }
 
       // ── Map ───────────────────────────────────────────────────────────────────
-      let _map = null, _mapView = false, _mapMarkers = [];
+      let _map=null, _mapView=false, _mapMarkers=[];
 
       function setView(v) {
-        _mapView = v === 'map';
-        document.getElementById('pet-grid').style.display = _mapView ? 'none' : '';
-        document.getElementById('pet-map').style.display  = _mapView ? 'block' : 'none';
+        _mapView = v==='map';
+        document.getElementById('pet-grid').style.display       = _mapView ? 'none'  : '';
+        document.getElementById('pet-map').style.display        = _mapView ? 'block' : 'none';
+        document.getElementById('load-more-wrap').style.display = _mapView ? 'none'  : '';
         document.getElementById('view-list').classList.toggle('active', !_mapView);
-        document.getElementById('view-map').classList.toggle('active',  _mapView);
+        document.getElementById('view-map').classList.toggle('active',   _mapView);
         if (_mapView) renderMap();
       }
 
       function renderMap() {
         if (!_map) {
-          _map = L.map('pet-map').setView([20, 0], 2);
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-            maxZoom: 19
+          _map = L.map('pet-map').setView([20,0],2);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+            attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom:19
           }).addTo(_map);
         }
-        _mapMarkers.forEach(m => m.remove());
-        _mapMarkers = [];
-
-        const located = getFilteredPets().filter(p => p.lat && p.lng);
-        if (!located.length) { _map.setView([20, 0], 2); return; }
-
-        located.forEach(p => {
-          const marker = L.marker([p.lat, p.lng]).addTo(_map);
-          marker.bindPopup(`
+        _mapMarkers.forEach(m=>m.remove());
+        _mapMarkers=[];
+        const located = getFilteredPets().filter(p=>p.lat&&p.lng);
+        if (!located.length) { _map.setView([20,0],2); return; }
+        located.forEach(p=>{
+          const m = L.marker([p.lat,p.lng]).addTo(_map);
+          m.bindPopup(`
             <div style="min-width:155px;font-family:'Segoe UI',Arial,sans-serif">
-              <div style="font-size:1.8rem;line-height:1">${EMOJIS[p.type]||'🐾'}</div>
-              <strong style="font-size:0.95rem">${esc(p.name)}</strong><br>
-              <span style="font-size:0.78rem;color:#7a5030">
-                ${esc(p.type)}${p.colour?' · '+esc(p.colour):''}${p.size?' · '+esc(p.size):''}
-              </span><br>
-              ${p.details ?`<span style="font-size:0.82rem;white-space:pre-line">${esc(p.details)}</span><br>`:''}
-              ${p.contact ?`<span style="font-size:0.78rem">📞 ${esc(p.contact)}</span><br>`:''}
+              <div style="font-size:1.8rem">${EMOJIS[p.type]||'🐾'}</div>
+              <strong>${esc(p.name)}</strong><br>
+              <span style="font-size:0.78rem;color:#7a5030">${esc(p.type)}${p.size?' · '+esc(p.size):''}</span><br>
+              ${p.details?`<span style="font-size:0.82rem;white-space:pre-line">${esc(p.details)}</span><br>`:''}
               <span style="font-size:0.75rem;color:#a07050">🕐 ${timeAgo(new Date(p.created_at).getTime())}</span>
               <div style="display:flex;gap:6px;margin-top:8px">
                 <button onclick="markFound('${p.id}')"
-                  style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">
-                  Found 🎉
-                </button>
+                  style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">Found 🎉</button>
                 <button onclick="removeListing('${p.id}')"
-                  style="background:#ef5350;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">
-                  Remove
-                </button>
+                  style="background:#ef5350;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">Remove</button>
               </div>
             </div>`);
-          _mapMarkers.push(marker);
+          _mapMarkers.push(m);
         });
-
-        const group = L.featureGroup(_mapMarkers);
-        _map.fitBounds(group.getBounds().pad(0.4));
-        setTimeout(() => _map.invalidateSize(), 50);
+        const g = L.featureGroup(_mapMarkers);
+        _map.fitBounds(g.getBounds().pad(0.4));
+        setTimeout(()=>_map.invalidateSize(),50);
       }
 
       // ── Geolocation ───────────────────────────────────────────────────────────
       function useMyLocation() {
-        if (!navigator.geolocation) { showToast('Geolocation not supported', 'info'); return; }
+        if (!navigator.geolocation) { showToast('Geolocation not supported','info'); return; }
         const btn = document.getElementById('btn-locate');
-        btn.textContent = '⏳'; btn.disabled = true;
-        navigator.geolocation.getCurrentPosition(async pos => {
-          const lat = pos.coords.latitude, lng = pos.coords.longitude;
-          const el = document.getElementById('last-location');
-          el.dataset.lat = lat; el.dataset.lng = lng;
+        btn.textContent='⏳'; btn.disabled=true;
+        navigator.geolocation.getCurrentPosition(async pos=>{
+          const lat=pos.coords.latitude, lng=pos.coords.longitude;
+          const el=document.getElementById('last-location');
+          el.dataset.lat=lat; el.dataset.lng=lng;
           try {
             const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
             const data = await res.json();
-            el.value = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-          } catch { el.value = `${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
-          btn.textContent = '📍'; btn.disabled = false;
-        }, () => {
-          showToast('Could not get your location', 'info');
-          btn.textContent = '📍'; btn.disabled = false;
+            el.value = data.display_name||`${lat.toFixed(5)},${lng.toFixed(5)}`;
+          } catch { el.value=`${lat.toFixed(5)},${lng.toFixed(5)}`; }
+          btn.textContent='📍'; btn.disabled=false;
+        },()=>{
+          showToast('Could not get your location','info');
+          btn.textContent='📍'; btn.disabled=false;
         });
       }
 
-      document.getElementById('last-location').addEventListener('input', function () {
+      document.getElementById('last-location').addEventListener('input',function(){
         delete this.dataset.lat; delete this.dataset.lng;
       });
+
+      // ── Near me ───────────────────────────────────────────────────────────────
+      function toggleNearMe() {
+        if (nearMeActive) {
+          nearMeActive=false; userLat=null; userLng=null;
+          document.getElementById('nearme-btn').classList.remove('active');
+          document.getElementById('nearme-btn').textContent='📍 Near me';
+          renderPets(); return;
+        }
+        if (!navigator.geolocation) { showToast('Geolocation not supported','info'); return; }
+        navigator.geolocation.getCurrentPosition(pos=>{
+          userLat=pos.coords.latitude; userLng=pos.coords.longitude;
+          nearMeActive=true;
+          document.getElementById('nearme-btn').classList.add('active');
+          document.getElementById('nearme-btn').textContent='📍 Within 10 km ✕';
+          currentPage=1;
+          renderPets();
+        },()=>showToast('Could not get your location','info'));
+      }
 
       // ── Filter ────────────────────────────────────────────────────────────────
       function getFilteredPets() {
         const q = filterSearch.toLowerCase();
-        return pets.filter(p => {
-          const matchType = !filterType || p.type === filterType;
+        return pets.filter(p=>{
+          if (reported.has(p.id)) return false;
+          const matchType   = !filterType || p.type===filterType;
           const matchSearch = !q ||
             (p.name     && p.name.toLowerCase().includes(q)) ||
-            (p.colour   && p.colour.toLowerCase().includes(q)) ||
             (p.location && p.location.toLowerCase().includes(q)) ||
             (p.details  && p.details.toLowerCase().includes(q));
-          return matchType && matchSearch;
+          const matchDist = !nearMeActive || !userLat || !p.lat ||
+            haversine(userLat,userLng,p.lat,p.lng) <= 10;
+          return matchType && matchSearch && matchDist;
+        }).map(p=>{
+          if (nearMeActive && userLat && p.lat)
+            p._dist = haversine(userLat,userLng,p.lat,p.lng);
+          else
+            delete p._dist;
+          return p;
+        }).sort((a,b)=>{
+          if (nearMeActive && a._dist!=null && b._dist!=null) return a._dist-b._dist;
+          return 0;
         });
       }
 
       function setTypeFilter(btn, type) {
-        filterType = type;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        filterType=type;
+        document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
-        renderPets();
+        currentPage=1; renderPets();
         if (_mapView) renderMap();
       }
 
       function onSearchInput() {
-        filterSearch = document.getElementById('search-input').value;
-        renderPets();
+        filterSearch=document.getElementById('search-input').value;
+        currentPage=1; renderPets();
         if (_mapView) renderMap();
       }
 
+      function loadMore() { currentPage++; renderPets(); }
+
       // ── Share ─────────────────────────────────────────────────────────────────
       function sharePet(id) {
-        const p = pets.find(x => x.id === id);
+        const p = pets.find(x=>x.id===id);
         const msg = [
           `🐾 Missing ${p.type}: ${p.name}`,
-          p.colour   ? p.colour              : '',
-          p.size     ? p.size + ' size'      : '',
+          p.size     ? p.size+' size' : '',
           p.location ? `Last seen: ${p.location}` : '',
           p.contact  ? `Contact: ${p.contact}`    : '',
-          `See all missing pets: https://mark693361-bot.github.io/Lost-and-Found-pets/`
+          `See all missing pets: ${appUrl()}`
         ].filter(Boolean).join(' · ');
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
       }
+
+      // ── Contact reveal ────────────────────────────────────────────────────────
+      function revealContact(id) {
+        const p  = pets.find(x=>x.id===id);
+        const el = document.getElementById(`contact-${id}`);
+        if (!el || !p) return;
+        el.textContent = '📞 ' + p.contact;
+        el.classList.add('revealed');
+        el.onclick = null;
+      }
+
+      // ── Report ────────────────────────────────────────────────────────────────
+      function reportListing(id) {
+        const p = pets.find(x=>x.id===id);
+        if (!confirm(`Report this listing for "${p?.name||'this pet'}" as inappropriate or spam?`)) return;
+        reported.add(id);
+        saveReported();
+        renderPets();
+        showToast('Listing reported and hidden. Thank you.','info');
+      }
+
+      // ── QR Code ───────────────────────────────────────────────────────────────
+      function showQR(id) {
+        const p = pets.find(x=>x.id===id);
+        const text = [
+          `MISSING PET: ${p.name} (${p.type})`,
+          p.details  ? p.details    : '',
+          p.contact  ? `Contact: ${p.contact}` : '',
+          appUrl()
+        ].filter(Boolean).join('\n');
+        document.getElementById('qr-title').textContent = `QR — ${p.name}`;
+        const container = document.getElementById('qr-container');
+        container.innerHTML='';
+        new QRCode(container,{text, width:200, height:200,
+          colorDark: document.body.getAttribute('data-theme')==='dark' ? '#f0d8c0' : '#2c1a0e',
+          colorLight: document.body.getAttribute('data-theme')==='dark' ? '#221508' : '#ffffff'
+        });
+        document.getElementById('qr-modal').classList.add('show');
+      }
+
+      function closeQR() { document.getElementById('qr-modal').classList.remove('show'); }
+
+      function closeQROverlay(e) { if (e.target===document.getElementById('qr-modal')) closeQR(); }
 
       // ── Pets ──────────────────────────────────────────────────────────────────
       async function loadAndRenderPets() {
         const grid = document.getElementById('pet-grid');
-        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
-        const { data, error } = await db.from('pets').select('*').order('created_at', { ascending: false });
+        grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
+        const {data,error} = await db.from('pets').select('*').order('created_at',{ascending:false});
         if (error) {
-          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Could not load listings.</p></div>`;
+          grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Could not load listings.</p></div>`;
           return;
         }
-        pets = data || [];
+        pets = data||[];
         renderPets();
         if (_mapView) renderMap();
       }
 
       function renderPets() {
-        const grid = document.getElementById('pet-grid');
+        const grid    = document.getElementById('pet-grid');
+        const wrap    = document.getElementById('load-more-wrap');
         const filtered = getFilteredPets();
+        const paged    = filtered.slice(0, currentPage*PAGE_SIZE);
+
         if (!filtered.length) {
-          grid.innerHTML = `
+          grid.innerHTML=`
             <div class="empty-state" style="grid-column:1/-1">
-              <div class="empty-icon">${pets.length === 0 ? '🔍' : '😕'}</div>
-              <p>${pets.length === 0
+              <div class="empty-icon">${pets.length===0?'🔍':'😕'}</div>
+              <p>${pets.length===0
                 ? 'No missing pets posted yet.<br>Use <strong>Post Missing Pet</strong> to add one.'
                 : 'No listings match your search.'}</p>
             </div>`;
+          wrap.style.display='none';
           return;
         }
-        grid.innerHTML = filtered.map(p => {
+
+        grid.innerHTML = paged.map(p=>{
+          const ts      = new Date(p.created_at).getTime();
+          const isOld   = daysSince(ts) > OLD_DAYS;
           const hasReward = p.details && p.details.includes('💰');
+          const dist    = p._dist != null ? fmtDist(p._dist) : null;
           return `
-          <div class="pet-card">
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div class="pet-card${isOld?' old-listing':''}">
+            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
               <span class="species-label">${esc(p.type||'pet')}</span>
               ${hasReward ? '<span class="reward-badge">💰 Reward</span>' : ''}
+              ${isOld     ? `<span class="age-badge">⚠️ ${Math.floor(daysSince(ts))}d old</span>` : ''}
+              ${dist      ? `<span class="dist-badge">📏 ${dist}</span>` : ''}
             </div>
             <div class="pc-emoji">${EMOJIS[p.type]||'🐾'}</div>
             <div class="pc-name">${esc(p.name)}</div>
-            <div class="pc-meta">
-              ${p.colour ? esc(p.colour)+' · ' : ''}${p.size ? esc(p.size[0].toUpperCase()+p.size.slice(1)) : 'Unknown size'}
-            </div>
+            <div class="pc-meta">${p.size ? esc(p.size[0].toUpperCase()+p.size.slice(1)) : 'Unknown size'}</div>
             ${p.location ? `<div class="pc-meta">📍 ${esc(p.location)}</div>` : ''}
             ${p.details  ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
-            ${p.contact  ? `<div class="pc-meta">📞 ${esc(p.contact)}</div>` : ''}
-            <div class="pc-meta" style="margin-top:2px">🕐 ${timeAgo(new Date(p.created_at).getTime())}</div>
+            ${p.contact  ? `<button class="pc-contact" id="contact-${p.id}" onclick="revealContact('${p.id}')">📞 Tap to reveal contact</button>` : ''}
+            <div class="pc-meta" style="margin-top:2px">🕐 ${timeAgo(ts)}</div>
             <button class="btn-share"  onclick="sharePet('${p.id}')">📲 Share on WhatsApp</button>
+            <button class="btn-qr"     onclick="showQR('${p.id}')">📱 Get QR code</button>
             <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
             <button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>
+            <button class="btn-report" onclick="reportListing('${p.id}')">🚩 Report</button>
           </div>`;
         }).join('');
+
+        wrap.style.display = filtered.length > currentPage*PAGE_SIZE ? 'block' : 'none';
       }
 
       async function markFound(id) {
-        const pet = pets.find(p => p.id === id);
-        const { error } = await db.from('pets').delete().eq('id', id);
-        if (error) { showToast('Could not update listing', 'info'); return; }
-        pets = pets.filter(p => p.id !== id);
-        renderPets();
-        if (_mapView) renderMap();
-        addNotif('🎉', `${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
-        showToast(`${pet.name} has been marked as found! 🎉`, 'success');
+        const pet = pets.find(p=>p.id===id);
+        const {error} = await db.from('pets').delete().eq('id',id);
+        if (error) { showToast('Could not update listing','info'); return; }
+        pets = pets.filter(p=>p.id!==id);
+        renderPets(); if (_mapView) renderMap();
+        addNotif('🎉',`${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
+        showToast(`${pet.name} marked as found! 🎉`,'success');
       }
 
       async function removeListing(id) {
-        const pet = pets.find(p => p.id === id);
+        const pet = pets.find(p=>p.id===id);
         if (!confirm(`Remove the listing for ${pet.name}?`)) return;
-        const { error } = await db.from('pets').delete().eq('id', id);
-        if (error) { showToast('Could not remove listing', 'info'); return; }
-        pets = pets.filter(p => p.id !== id);
-        renderPets();
-        if (_mapView) renderMap();
-        showToast('Listing removed.', 'info');
+        const {error} = await db.from('pets').delete().eq('id',id);
+        if (error) { showToast('Could not remove listing','info'); return; }
+        pets = pets.filter(p=>p.id!==id);
+        renderPets(); if (_mapView) renderMap();
+        showToast('Listing removed.','info');
       }
 
       // ── Notifications ─────────────────────────────────────────────────────────
       function renderNotifs() {
         const list = document.getElementById('notif-list');
         if (!notifs.length) {
-          list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>`;
+          list.innerHTML=`<div class="empty-state"><div class="empty-icon">🔔</div><p>No notifications yet.</p></div>`;
           return;
         }
-        list.innerHTML = '<div class="notif-list">' +
-          notifs.map(n => `
-            <div class="notif-item">
-              <div class="notif-icon">${n.icon}</div>
-              <div>
-                <div class="notif-msg">${n.msg}</div>
-                <div class="notif-time">${timeAgo(n.time)}</div>
-              </div>
-            </div>`).join('') +
-          '</div>';
+        list.innerHTML='<div class="notif-list">'+notifs.map(n=>`
+          <div class="notif-item">
+            <div class="notif-icon">${n.icon}</div>
+            <div>
+              <div class="notif-msg">${n.msg}</div>
+              <div class="notif-time">${timeAgo(n.time)}</div>
+            </div>
+          </div>`).join('')+'</div>';
       }
 
       // ── Post missing pet ──────────────────────────────────────────────────────
-      document.getElementById('post-form').addEventListener('submit', async e => {
+      document.getElementById('post-form').addEventListener('submit', async e=>{
         e.preventDefault();
         clearErrors(e.target);
+
+        const lastPost = parseInt(localStorage.getItem('lpf_last_post')||'0');
+        if (Date.now()-lastPost < COOLDOWN) {
+          const wait = Math.ceil((COOLDOWN-(Date.now()-lastPost))/1000);
+          showToast(`Please wait ${wait}s before posting again`,'info');
+          return;
+        }
 
         const type     = document.getElementById('animal-type').value;
         const name     = document.getElementById('pet-name').value.trim();
@@ -1134,50 +1441,50 @@
         const locEl    = document.getElementById('last-location');
         const location = locEl.value.trim();
 
-        let ok = true;
-        if (!type) { showError('animal-type', 'Please select an animal type'); ok = false; }
-        if (!name) { showError('pet-name',    'Please enter the pet\'s name');  ok = false; }
+        let ok=true;
+        if (!type) { showError('animal-type','Please select an animal type'); ok=false; }
+        if (!name) { showError('pet-name','Please enter the pet\'s name');    ok=false; }
+        if (name.length < 2) { showError('pet-name','Name is too short'); ok=false; }
         if (!ok) return;
 
-        const submitBtn = e.target.querySelector('.btn-primary');
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Posting…';
+        const btn = document.getElementById('post-submit-btn');
+        btn.disabled=true; btn.textContent='Posting…';
 
-        let lat = locEl.dataset.lat ? parseFloat(locEl.dataset.lat) : null;
-        let lng = locEl.dataset.lng ? parseFloat(locEl.dataset.lng) : null;
+        let lat=locEl.dataset.lat?parseFloat(locEl.dataset.lat):null;
+        let lng=locEl.dataset.lng?parseFloat(locEl.dataset.lng):null;
 
-        if (location && !lat) {
+        if (location&&!lat) {
           try {
             const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`);
             const data = await res.json();
-            if (data.length) { lat = parseFloat(data[0].lat); lng = parseFloat(data[0].lon); }
+            if (data.length) { lat=parseFloat(data[0].lat); lng=parseFloat(data[0].lon); }
           } catch {}
         }
 
-        const parts = [];
+        const parts=[];
         if (colour)  parts.push(`🎨 ${colour}`);
         if (details) parts.push(details);
         if (reward)  parts.push(`💰 Reward: ${reward}`);
         const fullDetails = parts.join('\n');
 
-        const { error: insertError } = await db.from('pets').insert({
-          type, name, size, details: fullDetails, contact, location, lat, lng
+        const {error:insertError} = await db.from('pets').insert({
+          type, name, size, details:fullDetails, contact, location, lat, lng
         });
 
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Post Missing Pet';
+        btn.disabled=false; btn.textContent='Post Missing Pet';
 
-        if (insertError) { showToast('Failed to post listing. Please try again.', 'info'); return; }
+        if (insertError) { showToast('Failed to post listing. Please try again.','info'); return; }
 
-        addNotif(EMOJIS[type]||'🐾', `A missing ${type} named "${esc(name)}" has been posted.`);
+        localStorage.setItem('lpf_last_post', Date.now());
+        addNotif(EMOJIS[type]||'🐾',`A missing ${type} named "${esc(name)}" has been posted.`);
         e.target.reset();
         delete locEl.dataset.lat; delete locEl.dataset.lng;
-        showToast(`${name} has been posted as missing!`, 'success');
+        showToast(`${name} has been posted as missing!`,'success');
         goTo('page-browse');
       });
 
       // ── Report found pet + auto-match ─────────────────────────────────────────
-      document.getElementById('found-form').addEventListener('submit', async e => {
+      document.getElementById('found-form').addEventListener('submit', async e=>{
         e.preventDefault();
         clearErrors(e.target);
 
@@ -1185,47 +1492,45 @@
         const location = document.getElementById('found-location').value.trim();
         const desc     = document.getElementById('found-desc').value.trim();
 
-        let ok = true;
-        if (!type)     { showError('found-type',     'Please select an animal type'); ok = false; }
-        if (!location) { showError('found-location', 'Please enter a location');      ok = false; }
+        let ok=true;
+        if (!type)     { showError('found-type','Please select an animal type'); ok=false; }
+        if (!location) { showError('found-location','Please enter a location');  ok=false; }
         if (!ok) return;
 
-        const { data: matches } = await db.from('pets').select('*').eq('type', type).order('created_at', { ascending: false });
+        const {data:matches} = await db.from('pets').select('*').eq('type',type).order('created_at',{ascending:false});
         const resultsEl = document.getElementById('match-results');
 
-        if (matches && matches.length) {
-          resultsEl.innerHTML = `
+        if (matches&&matches.length) {
+          resultsEl.innerHTML=`
             <div class="match-alert">
-              <h3>🎯 ${matches.length} missing ${type}${matches.length > 1 ? 's' : ''} in the system — could this be one of them?</h3>
-              ${matches.slice(0, 3).map(p => `
+              <h3>🎯 ${matches.length} missing ${type}${matches.length>1?'s':''} in the system — could this be one of them?</h3>
+              ${matches.slice(0,3).map(p=>`
                 <div class="match-card">
-                  <strong>${EMOJIS[p.type]||'🐾'} ${esc(p.name)}</strong>
-                  ${p.size   ? ` · ${esc(p.size)}`   : ''}
-                  ${p.details ? `<br><span style="color:#5a3520;font-size:0.85rem;white-space:pre-line">${esc(p.details)}</span>` : ''}
-                  ${p.location ? `<br>📍 ${esc(p.location)}` : ''}
-                  ${p.contact  ? `<br>📞 ${esc(p.contact)}`  : ''}
+                  <strong>${EMOJIS[p.type]||'🐾'} ${esc(p.name)}</strong>${p.size?` · ${esc(p.size)}`:''}
+                  ${p.details?`<br><span style="font-size:0.85rem;white-space:pre-line">${esc(p.details)}</span>`:''}
+                  ${p.location?`<br>📍 ${esc(p.location)}`:''}
+                  ${p.contact?`<br>📞 ${esc(p.contact)}`:''}
                   <br><span style="font-size:0.75rem;color:#a07050">Posted ${timeAgo(new Date(p.created_at).getTime())}</span>
                 </div>`).join('')}
-              ${matches.length > 3 ? `<p style="font-size:0.82rem;color:#2e7d32;margin-top:6px">+${matches.length-3} more — <a href="#" onclick="goTo('page-browse');return false">Browse all listings</a></p>` : ''}
+              ${matches.length>3?`<p style="font-size:0.82rem;color:#2e7d32;margin-top:6px">+${matches.length-3} more — <a href="#" onclick="goTo('page-browse');return false">Browse all</a></p>`:''}
             </div>`;
         } else {
-          resultsEl.innerHTML = `
-            <div style="margin-top:16px;padding:14px;background:#fff8f2;border:1px solid #f0c8a0;border-radius:10px;font-size:0.9rem;color:#7a5030">
-              No missing ${type}s currently listed — but your report has been logged as a notification. If an owner posts later, they'll see it.
+          resultsEl.innerHTML=`
+            <div style="margin-top:16px;padding:14px;background:var(--bg-notif);border:1px solid var(--border);border-radius:10px;font-size:0.9rem;color:var(--text-muted)">
+              No missing ${type}s currently listed — your report has been saved as a notification.
             </div>`;
         }
 
-        addNotif(EMOJIS[type]||'🐾', `A ${type} was found at ${esc(location)}.${desc ? ' '+esc(desc) : ''}`);
+        addNotif(EMOJIS[type]||'🐾',`A ${type} was found at ${esc(location)}.${desc?' '+esc(desc):''}`);
         e.target.reset();
-        showToast('Thank you for reporting a found pet!', 'info');
+        showToast('Thank you for reporting a found pet!','info');
       });
 
-      // ── Real-time updates ─────────────────────────────────────────────────────
+      // ── Real-time ─────────────────────────────────────────────────────────────
       db.channel('pets-live')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'pets' }, () => {
-          if (document.getElementById('page-browse').classList.contains('active')) {
+        .on('postgres_changes',{event:'*',schema:'public',table:'pets'},()=>{
+          if (document.getElementById('page-browse').classList.contains('active'))
             loadAndRenderPets();
-          }
         })
         .subscribe();
 
