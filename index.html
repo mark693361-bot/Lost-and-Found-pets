@@ -280,6 +280,43 @@
 
     .btn-report:hover { color: #e53935; }
 
+    /* Photo upload */
+    .photo-input-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      transition: border-color 0.2s, background 0.2s;
+      background: var(--bg-input);
+    }
+
+    .photo-input-label:hover { border-color: var(--accent); background: var(--bg-card); }
+
+    #pet-photo { display: none; }
+
+    .photo-preview {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      display: none;
+      margin-top: 8px;
+    }
+
+    .pc-photo {
+      width: 100%;
+      height: 130px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
     /* Pet grid */
     .pet-grid {
       display: grid;
@@ -769,6 +806,14 @@
               <input id="reward" type="text" placeholder="e.g. $50 cash reward" />
             </div>
             <div class="field">
+              <label>Photo (optional)</label>
+              <label class="photo-input-label" for="pet-photo">
+                📷 Tap to add a photo of your pet
+              </label>
+              <input id="pet-photo" type="file" accept="image/*" onchange="previewPhoto(this)" />
+              <img id="photo-preview" class="photo-preview" alt="Preview" />
+            </div>
+            <div class="field">
               <label for="last-location">Last seen location</label>
               <div class="field-row">
                 <input id="last-location" type="text" placeholder="e.g. Central Park, New York" />
@@ -1011,6 +1056,15 @@
       let currentPage  = 1;
 
       const appUrl = () => window.location.origin + window.location.pathname;
+
+      // ── Photo preview ────────────────────────────────────────────────────────
+      function previewPhoto(input) {
+        const file = input.files[0];
+        const img  = document.getElementById('photo-preview');
+        if (!file) { img.style.display='none'; return; }
+        img.src = URL.createObjectURL(file);
+        img.style.display = 'block';
+      }
 
       // ── Dark mode ─────────────────────────────────────────────────────────────
       function toggleTheme() {
@@ -1358,6 +1412,7 @@
           const dist    = p._dist != null ? fmtDist(p._dist) : null;
           return `
           <div class="pet-card${isOld?' old-listing':''}">
+            ${p.photo_url ? `<img class="pc-photo" src="${esc(p.photo_url)}" alt="${esc(p.name)}" loading="lazy" />` : ''}
             <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
               <span class="species-label">${esc(p.type||'pet')}</span>
               ${hasReward ? '<span class="reward-badge">💰 Reward</span>' : ''}
@@ -1453,6 +1508,21 @@
         let lat=locEl.dataset.lat?parseFloat(locEl.dataset.lat):null;
         let lng=locEl.dataset.lng?parseFloat(locEl.dataset.lng):null;
 
+        // Upload photo if provided
+        let photo_url = null;
+        const photoFile = document.getElementById('pet-photo').files[0];
+        if (photoFile) {
+          btn.textContent='Uploading photo…';
+          const ext      = photoFile.name.split('.').pop();
+          const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+          const {error: upErr} = await db.storage.from('pet-photos').upload(filename, photoFile, {contentType: photoFile.type});
+          if (!upErr) {
+            const {data:{publicUrl}} = db.storage.from('pet-photos').getPublicUrl(filename);
+            photo_url = publicUrl;
+          }
+          btn.textContent='Posting…';
+        }
+
         if (location&&!lat) {
           try {
             const res  = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`);
@@ -1468,7 +1538,7 @@
         const fullDetails = parts.join('\n');
 
         const {error:insertError} = await db.from('pets').insert({
-          type, name, size, details:fullDetails, contact, location, lat, lng
+          type, name, size, details:fullDetails, contact, location, lat, lng, photo_url
         });
 
         btn.disabled=false; btn.textContent='Post Missing Pet';
@@ -1478,6 +1548,7 @@
         localStorage.setItem('lpf_last_post', Date.now());
         addNotif(EMOJIS[type]||'🐾',`A missing ${type} named "${esc(name)}" has been posted.`);
         e.target.reset();
+        document.getElementById('photo-preview').style.display = 'none';
         delete locEl.dataset.lat; delete locEl.dataset.lng;
         showToast(`${name} has been posted as missing!`,'success');
         goTo('page-browse');
