@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --bg-page:    #fff8f2;
@@ -327,6 +328,20 @@
     }
 
     .btn-sighting-submit:hover { opacity: 0.88; }
+
+    .btn-flyer {
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-flyer:hover { background: rgba(232,98,42,0.08); border-color: var(--accent); color: var(--accent); }
 
     .btn-report {
       background: none;
@@ -751,6 +766,69 @@
 
     .guide-tip strong { color: var(--accent); }
 
+    /* Auth modal */
+    .auth-modal-box {
+      background: var(--bg-card);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 380px;
+      width: 92%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .auth-modal-box h3 { color: var(--accent); font-size: 1.3rem; text-align: center; }
+    .auth-modal-box p  { font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+
+    .auth-error {
+      color: #e53935;
+      font-size: 0.83rem;
+      background: #ffebee;
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: none;
+    }
+
+    .btn-auth-toggle {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: underline;
+      padding: 0;
+    }
+
+    .user-pill {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      background: rgba(232,98,42,0.1);
+      border-radius: 50px;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .login-prompt {
+      background: linear-gradient(135deg, #fff3e0 0%, #fce8b4 100%);
+      border: 2px solid var(--accent2);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .login-prompt p { font-size: 0.92rem; color: var(--text-mid); margin-bottom: 10px; }
+
     /* Match alert */
     .match-alert {
       background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
@@ -791,6 +869,178 @@
       font-size: 0.82rem;
       border-top: 1px solid var(--border);
     }
+
+    /* ── Homepage ─────────────────────────────────────────────── */
+    #page-home { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
+
+    .home-hero {
+      text-align: center;
+      padding: 56px 16px 48px;
+    }
+    .home-hero-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 16px; }
+    .home-hero h2 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 12px;
+      line-height: 1.15;
+    }
+    .home-hero h2 span { color: var(--accent); }
+    .home-hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 480px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .home-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-hero-primary {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #b84a18;
+      transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .btn-hero-primary:hover  { transform: translateY(-2px); box-shadow: 0 6px 0 #b84a18; }
+    .btn-hero-primary:active { transform: translateY(2px);  box-shadow: 0 1px 0 #b84a18; }
+    .btn-hero-secondary {
+      padding: 14px 28px;
+      background: var(--bg-card);
+      color: var(--accent);
+      border: 2px solid var(--accent);
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-hero-secondary:hover { background: rgba(232,98,42,0.07); }
+
+    .home-stats {
+      display: flex;
+      gap: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .home-stat {
+      flex: 1;
+      text-align: center;
+      padding: 20px 12px;
+      border-right: 1px solid var(--border);
+    }
+    .home-stat:last-child { border-right: none; }
+    .home-stat-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .home-stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; }
+
+    .home-section-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 20px;
+    }
+
+    .home-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .home-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .home-step-num {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.9rem;
+      margin: 0 auto 12px;
+    }
+    .home-step-icon { font-size: 2rem; margin-bottom: 10px; }
+    .home-step h4 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 0 0 6px; }
+    .home-step p  { font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+    .home-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .home-feature {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .home-feature-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .home-feature-text strong { display: block; font-size: 0.85rem; color: var(--text); font-weight: 700; }
+    .home-feature-text span   { font-size: 0.78rem; color: var(--text-muted); }
+
+    .home-cta-banner {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border-radius: 20px;
+      padding: 36px 32px;
+      text-align: center;
+      color: white;
+    }
+    .home-cta-banner h3 { font-size: 1.4rem; font-weight: 800; margin: 0 0 8px; }
+    .home-cta-banner p  { margin: 0 0 24px; opacity: 0.9; font-size: 0.95rem; }
+    .btn-banner {
+      padding: 12px 28px;
+      background: white;
+      color: var(--accent);
+      border: none;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 4px;
+      transition: opacity 0.15s;
+    }
+    .btn-banner:hover { opacity: 0.9; }
+    .btn-banner-outline {
+      padding: 12px 28px;
+      background: transparent;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 4px;
+      transition: border-color 0.15s;
+    }
+    .btn-banner-outline:hover { border-color: white; }
+
+    @media (max-width: 480px) {
+      .home-hero { padding: 36px 8px 32px; }
+      .home-stats { flex-direction: column; }
+      .home-stat  { border-right: none; border-bottom: 1px solid var(--border); }
+      .home-stat:last-child { border-bottom: none; }
+    }
   </style>
   </head>
   <body>
@@ -802,9 +1052,12 @@
 
     <nav>
       <button class="nav-btn" id="back-btn" onclick="goBack()">← Back</button>
-      <button class="nav-btn active" data-page="page-post">📋 Post Missing Pet</button>
+      <button class="nav-btn active" data-page="page-home">🏠 Home</button>
+      <button class="nav-btn" data-page="page-post">📋 Post</button>
       <button class="nav-btn" data-page="page-browse">🔍 Browse</button>
       <button class="nav-btn" data-page="page-notifs" id="notifs-btn">🔔 Notifications</button>
+      <span class="user-pill" id="user-pill">👤 <span id="user-email-text"></span></span>
+      <button class="nav-btn" id="auth-nav-btn" onclick="openAuthModal()">Login</button>
     </nav>
 
     <div class="action-cards">
@@ -827,9 +1080,108 @@
 
     <main>
 
+      <!-- Home / Landing -->
+      <div class="page active" id="page-home">
+
+        <div class="home-hero">
+          <div class="home-hero-icon">🐾</div>
+          <h2>Find your <span>missing pet</span>.<br>Help reunite others.</h2>
+          <p>A free community platform to post missing pets, report sightings, and get notified when your pet is spotted nearby.</p>
+          <div class="home-ctas">
+            <button class="btn-hero-primary" onclick="goTo('page-post')">📋 Post a Missing Pet</button>
+            <button class="btn-hero-secondary" onclick="goTo('page-browse')">🔍 Browse Listings</button>
+          </div>
+        </div>
+
+        <div class="home-stats">
+          <div class="home-stat">
+            <div class="home-stat-num" id="stat-listings">—</div>
+            <div class="home-stat-label">Active listings</div>
+          </div>
+          <div class="home-stat">
+            <div class="home-stat-num" id="stat-sightings">—</div>
+            <div class="home-stat-label">Sightings reported</div>
+          </div>
+          <div class="home-stat">
+            <div class="home-stat-num">🌍</div>
+            <div class="home-stat-label">Community-powered</div>
+          </div>
+        </div>
+
+        <div class="home-section-title">How it works</div>
+        <div class="home-steps">
+          <div class="home-step">
+            <div class="home-step-icon">📋</div>
+            <div class="home-step-num">1</div>
+            <h4>Post your pet</h4>
+            <p>Add a photo, description, last seen location, and contact details in under 2 minutes.</p>
+          </div>
+          <div class="home-step">
+            <div class="home-step-icon">🔍</div>
+            <div class="home-step-num">2</div>
+            <h4>Community searches</h4>
+            <p>Neighbors browse listings, filter by location, and report sightings if they spot your pet.</p>
+          </div>
+          <div class="home-step">
+            <div class="home-step-icon">📧</div>
+            <div class="home-step-num">3</div>
+            <h4>Get notified</h4>
+            <p>You receive an email the moment someone reports a sighting — so you can act fast.</p>
+          </div>
+        </div>
+
+        <div class="home-section-title">Everything you need</div>
+        <div class="home-features">
+          <div class="home-feature">
+            <div class="home-feature-icon">📸</div>
+            <div class="home-feature-text"><strong>Photo uploads</strong><span>Attach a clear photo to your listing</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">📍</div>
+            <div class="home-feature-text"><strong>Map view</strong><span>See all missing pets plotted on a map</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">📡</div>
+            <div class="home-feature-text"><strong>Real-time updates</strong><span>New listings appear instantly, no refresh needed</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">📏</div>
+            <div class="home-feature-text"><strong>Near me filter</strong><span>Find pets missing close to your location</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">📱</div>
+            <div class="home-feature-text"><strong>QR code sharing</strong><span>Print or share a QR code for each listing</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">💬</div>
+            <div class="home-feature-text"><strong>WhatsApp share</strong><span>Send listings directly to your contacts</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">🌙</div>
+            <div class="home-feature-text"><strong>Dark mode</strong><span>Easy on the eyes at any time of day</span></div>
+          </div>
+          <div class="home-feature">
+            <div class="home-feature-icon">🔒</div>
+            <div class="home-feature-text"><strong>Owner-only delete</strong><span>Only you can remove your own listings</span></div>
+          </div>
+        </div>
+
+        <div class="home-cta-banner">
+          <h3>Missing a pet? Don't wait.</h3>
+          <p>The sooner you post, the sooner your community can help.</p>
+          <button class="btn-banner" onclick="goTo('page-post')">Post a Listing Now</button>
+          <button class="btn-banner-outline" onclick="goTo('page-browse')">Browse Listings</button>
+        </div>
+
+      </div>
+
       <!-- Post Missing Pet -->
-      <div class="page active" id="page-post">
-        <div class="card">
+      <div class="page" id="page-post">
+        <div id="login-prompt-box" class="login-prompt" style="display:none">
+          <p>You need an account to post a missing pet listing.</p>
+          <button class="btn-primary" onclick="openAuthModal()">Login / Sign up</button>
+        </div>
+        <div class="card" id="post-form-card">
           <h2>Post a Missing Pet</h2>
           <form id="post-form">
             <div class="field">
@@ -1085,6 +1437,25 @@
 
     <div class="toast" id="toast"></div>
 
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal" onclick="closeAuthOverlay(event)">
+      <div class="auth-modal-box">
+        <h3 id="auth-title">Welcome back</h3>
+        <p id="auth-subtitle">Log in to post and manage your listings</p>
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" type="email" placeholder="your@email.com" />
+        </div>
+        <div class="field">
+          <label for="auth-password">Password</label>
+          <input id="auth-password" type="password" placeholder="Password (min 6 characters)" />
+        </div>
+        <div class="auth-error" id="auth-error"></div>
+        <button class="btn-primary" id="auth-submit-btn" onclick="submitAuth()" style="align-self:stretch;text-align:center">Log in</button>
+        <button class="btn-auth-toggle" id="auth-toggle-btn" onclick="toggleAuthMode()">Don't have an account? Sign up</button>
+      </div>
+    </div>
+
     <!-- QR Modal -->
     <div class="modal-overlay" id="qr-modal" onclick="closeQROverlay(event)">
       <div class="modal-box">
@@ -1118,6 +1489,115 @@
       let currentPage  = 1;
 
       const appUrl = () => window.location.origin + window.location.pathname;
+
+      // ── Auth ─────────────────────────────────────────────────────────────────
+      let currentUser = null;
+      let authMode    = 'login'; // 'login' | 'signup'
+
+      db.auth.getSession().then(({data:{session}}) => {
+        currentUser = session?.user || null;
+        updateAuthUI();
+      });
+
+      loadHomeStats();
+
+      db.auth.onAuthStateChange((_e, session) => {
+        currentUser = session?.user || null;
+        updateAuthUI();
+      });
+
+      function updateAuthUI() {
+        const btn    = document.getElementById('auth-nav-btn');
+        const pill   = document.getElementById('user-pill');
+        const prompt = document.getElementById('login-prompt-box');
+        const card   = document.getElementById('post-form-card');
+
+        if (currentUser) {
+          document.getElementById('user-email-text').textContent = currentUser.email;
+          pill.style.display = 'flex';
+          btn.textContent    = 'Sign out';
+          btn.onclick        = signOut;
+          prompt.style.display = 'none';
+          card.style.display   = 'block';
+        } else {
+          pill.style.display   = 'none';
+          btn.textContent      = 'Login';
+          btn.onclick          = openAuthModal;
+          prompt.style.display = 'block';
+          card.style.display   = 'none';
+        }
+        if (document.getElementById('page-browse').classList.contains('active')) renderPets();
+      }
+
+      function openAuthModal() {
+        authMode = 'login';
+        updateAuthModal();
+        document.getElementById('auth-email').value    = '';
+        document.getElementById('auth-password').value = '';
+        document.getElementById('auth-error').style.display = 'none';
+        document.getElementById('auth-modal').classList.add('show');
+      }
+
+      function closeAuthModal() { document.getElementById('auth-modal').classList.remove('show'); }
+
+      function closeAuthOverlay(e) { if (e.target===document.getElementById('auth-modal')) closeAuthModal(); }
+
+      function toggleAuthMode() {
+        authMode = authMode==='login' ? 'signup' : 'login';
+        updateAuthModal();
+      }
+
+      function updateAuthModal() {
+        const isLogin = authMode==='login';
+        document.getElementById('auth-title').textContent    = isLogin ? 'Welcome back'         : 'Create account';
+        document.getElementById('auth-subtitle').textContent = isLogin ? 'Log in to post and manage your listings' : 'Sign up to start posting missing pets';
+        document.getElementById('auth-submit-btn').textContent = isLogin ? 'Log in'   : 'Sign up';
+        document.getElementById('auth-toggle-btn').textContent = isLogin ? "Don't have an account? Sign up" : 'Already have an account? Log in';
+        document.getElementById('auth-error').style.display = 'none';
+      }
+
+      function showAuthError(msg) {
+        const el = document.getElementById('auth-error');
+        el.textContent    = msg;
+        el.style.display  = 'block';
+      }
+
+      async function submitAuth() {
+        const email    = document.getElementById('auth-email').value.trim();
+        const password = document.getElementById('auth-password').value;
+        const btn      = document.getElementById('auth-submit-btn');
+
+        if (!email || !password) { showAuthError('Please enter your email and password.'); return; }
+        if (password.length < 6) { showAuthError('Password must be at least 6 characters.'); return; }
+
+        btn.disabled    = true;
+        btn.textContent = authMode==='login' ? 'Logging in…' : 'Creating account…';
+
+        if (authMode==='login') {
+          const {error} = await db.auth.signInWithPassword({email, password});
+          if (error) { showAuthError(error.message); btn.disabled=false; btn.textContent='Log in'; return; }
+          closeAuthModal();
+          showToast('Welcome back! 👋', 'success');
+        } else {
+          const {data, error} = await db.auth.signUp({email, password});
+          if (error) { showAuthError(error.message); btn.disabled=false; btn.textContent='Sign up'; return; }
+          if (data.session) {
+            closeAuthModal();
+            showToast('Account created! Welcome 🎉', 'success');
+          } else {
+            showAuthError('Check your email to confirm your account, then log in.');
+            btn.disabled=false; btn.textContent='Sign up';
+          }
+        }
+
+        btn.disabled=false;
+        btn.textContent = authMode==='login' ? 'Log in' : 'Sign up';
+      }
+
+      async function signOut() {
+        await db.auth.signOut();
+        showToast('Signed out.', 'info');
+      }
 
       // ── Photo preview ────────────────────────────────────────────────────────
       function previewPhoto(input) {
@@ -1215,10 +1695,11 @@
         const nb = document.querySelector(`[data-page="${pageId}"]`);
         if (nb) nb.classList.add('active');
         document.getElementById('back-btn').classList.toggle('visible', _history.length > 0);
-        const guides = ['page-guide-post','page-guide-browse','page-guide-report'];
-        document.querySelector('.action-cards').style.display = guides.includes(pageId) ? 'none' : '';
+        const hideCards = ['page-guide-post','page-guide-browse','page-guide-report','page-home'];
+        document.querySelector('.action-cards').style.display = hideCards.includes(pageId) ? 'none' : '';
         if (pageId === 'page-browse') { currentPage = 1; loadAndRenderPets(); }
         if (pageId === 'page-notifs') { unread = 0; saveNotifs(); renderNotifs(); }
+        if (pageId === 'page-home')   { loadHomeStats(); }
       }
 
       function currentPageId() { return document.querySelector('.page.active')?.id || 'page-post'; }
@@ -1280,12 +1761,13 @@
               <span style="font-size:0.78rem;color:#7a5030">${esc(p.type)}${p.size?' · '+esc(p.size):''}</span><br>
               ${p.details?`<span style="font-size:0.82rem;white-space:pre-line">${esc(p.details)}</span><br>`:''}
               <span style="font-size:0.75rem;color:#a07050">🕐 ${timeAgo(new Date(p.created_at).getTime())}</span>
+              ${currentUser && p.user_id === currentUser.id ? `
               <div style="display:flex;gap:6px;margin-top:8px">
                 <button onclick="markFound('${p.id}')"
                   style="background:#4caf50;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">Found 🎉</button>
                 <button onclick="removeListing('${p.id}')"
                   style="background:#ef5350;color:white;border:none;padding:5px 10px;border-radius:20px;cursor:pointer;font-size:0.78rem;font-weight:600">Remove</button>
-              </div>
+              </div>` : ''}
             </div>`);
           _mapMarkers.push(m);
         });
@@ -1435,6 +1917,18 @@
 
       function closeQROverlay(e) { if (e.target===document.getElementById('qr-modal')) closeQR(); }
 
+      // ── Home stats ────────────────────────────────────────────────────────────
+      async function loadHomeStats() {
+        const [{ count: listingCount }, { count: sightingCount }] = await Promise.all([
+          db.from('pets').select('*', { count: 'exact', head: true }),
+          db.from('sightings').select('*', { count: 'exact', head: true }),
+        ]);
+        const el1 = document.getElementById('stat-listings');
+        const el2 = document.getElementById('stat-sightings');
+        if (el1) el1.textContent = listingCount ?? '—';
+        if (el2) el2.textContent = sightingCount ?? '—';
+      }
+
       // ── Pets ──────────────────────────────────────────────────────────────────
       async function loadAndRenderPets() {
         const grid = document.getElementById('pet-grid');
@@ -1500,7 +1994,8 @@
               </div>
             </div>
             <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
-            <button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>
+            <button class="btn-flyer"  onclick="generateFlyer('${p.id}')">🖨 Print Flyer</button>
+            ${currentUser && p.user_id === currentUser.id ? `<button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>` : ''}
             <button class="btn-report" onclick="reportListing('${p.id}')">🚩 Report</button>
           </div>`;
         }).join('');
@@ -1512,10 +2007,157 @@
         const pet = pets.find(p=>p.id===id);
         const {error} = await db.from('pets').delete().eq('id',id);
         if (error) { showToast('Could not update listing','info'); return; }
+        notifyOwner('found', id);
         pets = pets.filter(p=>p.id!==id);
         renderPets(); if (_mapView) renderMap();
         addNotif('🎉',`${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
         showToast(`${pet.name} marked as found! 🎉`,'success');
+      }
+
+      async function fetchImageAsBase64(url) {
+        const resp = await fetch(url);
+        const blob = await resp.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload  = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      async function generateFlyer(id) {
+        const p = pets.find(pet => pet.id === id);
+        if (!p) return;
+
+        showToast('Generating flyer…', 'info');
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const W = 210, H = 297, M = 16;
+
+        // Warm background
+        doc.setFillColor(255, 248, 242);
+        doc.rect(0, 0, W, H, 'F');
+
+        // Orange header bar
+        doc.setFillColor(232, 98, 42);
+        doc.rect(0, 0, W, 42, 'F');
+
+        // "MISSING" title
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(36);
+        doc.setFont('helvetica', 'bold');
+        doc.text('MISSING', W / 2, 28, { align: 'center' });
+
+        let y = 54;
+
+        // Pet name
+        doc.setTextColor(44, 26, 14);
+        doc.setFontSize(28);
+        doc.setFont('helvetica', 'bold');
+        doc.text((p.name || 'Unknown').toUpperCase(), W / 2, y, { align: 'center' });
+        y += 9;
+
+        // Species · size
+        const specLine = [p.type, p.size].filter(Boolean).join(' · ');
+        doc.setFontSize(13);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(122, 80, 48);
+        doc.text(specLine, W / 2, y, { align: 'center' });
+        y += 12;
+
+        // Photo
+        if (p.photo_url) {
+          try {
+            const imgData = await fetchImageAsBase64(p.photo_url);
+            const ext = (p.photo_url.split('.').pop().split('?')[0] || 'jpeg').toUpperCase();
+            const fmt = ext === 'JPG' ? 'JPEG' : (['PNG','WEBP','JPEG'].includes(ext) ? ext : 'JPEG');
+            const imgW = 120, imgH = 80;
+            doc.addImage(imgData, fmt, (W - imgW) / 2, y, imgW, imgH, undefined, 'MEDIUM');
+            y += imgH + 8;
+          } catch (_) { /* no photo, skip */ }
+        }
+
+        // Divider
+        doc.setDrawColor(240, 200, 160);
+        doc.setLineWidth(0.4);
+        doc.line(M, y, W - M, y);
+        y += 8;
+
+        // Details block
+        if (p.details) {
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(44, 26, 14);
+          const lines = doc.splitTextToSize(p.details, W - M * 2);
+          doc.text(lines, M, y);
+          y += lines.length * 5.5 + 6;
+        }
+
+        // Last seen location
+        if (p.location) {
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(232, 98, 42);
+          doc.text('📍 Last seen:', M, y);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(44, 26, 14);
+          const locLines = doc.splitTextToSize(p.location, W - M * 2 - 34);
+          doc.text(locLines, M + 34, y);
+          y += Math.max(locLines.length * 5.5, 6) + 4;
+        }
+
+        // Date
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(122, 80, 48);
+        doc.text(`Missing since: ${new Date(p.created_at).toLocaleDateString()}`, M, y);
+        y += 10;
+
+        // Second divider
+        doc.setDrawColor(240, 200, 160);
+        doc.line(M, y, W - M, y);
+        y += 8;
+
+        // Contact box
+        doc.setFillColor(255, 235, 220);
+        doc.roundedRect(M, y, W - M * 2, 22, 4, 4, 'F');
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(122, 80, 48);
+        doc.text('IF FOUND, PLEASE CONTACT:', M + 6, y + 7);
+        doc.setFontSize(14);
+        doc.setTextColor(232, 98, 42);
+        doc.text(p.contact || '', M + 6, y + 17);
+        y += 30;
+
+        // QR code (links back to app)
+        const appUrl = window.location.origin + window.location.pathname;
+        const qrDiv = document.createElement('div');
+        qrDiv.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
+        document.body.appendChild(qrDiv);
+        new QRCode(qrDiv, { text: appUrl, width: 80, height: 80, correctLevel: QRCode.CorrectLevel.M });
+        await new Promise(r => setTimeout(r, 200));
+        const qrCanvas = qrDiv.querySelector('canvas');
+        if (qrCanvas) {
+          const qrData = qrCanvas.toDataURL('image/png');
+          const qrSize = 32;
+          const qrX = W - M - qrSize;
+          const qrY = H - M - qrSize - 8;
+          doc.addImage(qrData, 'PNG', qrX, qrY, qrSize, qrSize);
+          doc.setFontSize(7);
+          doc.setTextColor(122, 80, 48);
+          doc.text('Scan to view', qrX + qrSize / 2, qrY + qrSize + 4, { align: 'center' });
+        }
+        document.body.removeChild(qrDiv);
+
+        // Footer
+        doc.setFontSize(8);
+        doc.setTextColor(160, 112, 80);
+        doc.text('Posted on Lost Pet Finder', W / 2, H - 6, { align: 'center' });
+
+        doc.save(`missing-${(p.name || 'pet').toLowerCase().replace(/\s+/g, '-')}.pdf`);
+        showToast('Flyer downloaded!', 'success');
       }
 
       async function removeListing(id) {
@@ -1549,6 +2191,8 @@
       document.getElementById('post-form').addEventListener('submit', async e=>{
         e.preventDefault();
         clearErrors(e.target);
+
+        if (!currentUser) { openAuthModal(); return; }
 
         const lastPost = parseInt(localStorage.getItem('lpf_last_post')||'0');
         if (Date.now()-lastPost < COOLDOWN) {
@@ -1609,7 +2253,8 @@
         const fullDetails = parts.join('\n');
 
         const {error:insertError} = await db.from('pets').insert({
-          type, name, size, details:fullDetails, contact, location, lat, lng, photo_url
+          type, name, size, details:fullDetails, contact, location, lat, lng, photo_url,
+          user_id: currentUser?.id || null
         });
 
         btn.disabled=false; btn.textContent='Post Missing Pet';
@@ -1696,6 +2341,19 @@
           </div>`).join('');
       }
 
+      async function notifyOwner(type, petId, extra={}) {
+        try {
+          await fetch(`https://exdaerddjzklfgvxombf.supabase.co/functions/v1/send-notification`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4ZGFlcmRkanprbGZndnhvbWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ2MjMsImV4cCI6MjA5NTIxMDYyM30.kbTBIu2tHgcW0M1Df7G_S02_kwbBbYQyWp67luJR7Ac`
+            },
+            body: JSON.stringify({ type, petId, ...extra })
+          });
+        } catch (_) { /* non-critical, don't block UI */ }
+      }
+
       async function submitSighting(petId) {
         const msg = document.getElementById(`s-msg-${petId}`).value.trim();
         const loc = document.getElementById(`s-loc-${petId}`).value.trim();
@@ -1708,6 +2366,7 @@
         document.getElementById(`s-loc-${petId}`).value = '';
         loadSightings(petId);
         showToast('Sighting added!','success');
+        notifyOwner('sighting', petId, { sightingMsg: msg, sightingLoc: loc });
       }
 
       // ── Real-time ─────────────────────────────────────────────────────────────
