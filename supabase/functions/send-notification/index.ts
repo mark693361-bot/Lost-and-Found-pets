@@ -88,11 +88,16 @@ serve(async (req) => {
         <p style="color:#a07050;font-size:0.8rem;margin-top:24px">You received this because you posted this listing.</p>
       </div>`
     } else if (type === 'found') {
-      subject = `${pet.name} may have been found! 🎉`
+      const { finderContact } = body
+      subject = `Someone says they found ${pet.name}! 🎉`
       html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:24px;background:#fff8f2;border-radius:12px">
-        <h2 style="color:#4caf50;margin:0 0 8px">Great news about ${pet.name}!</h2>
-        <p style="color:#5a3825;margin:0 0 16px">Someone marked <strong>${pet.name}</strong> as found on <strong>Lost Pet Finder</strong>.</p>
-        <a href="${appUrl ?? ''}" style="display:inline-block;padding:12px 24px;background:#4caf50;color:white;text-decoration:none;border-radius:50px;font-weight:700">Open Lost Pet Finder →</a>
+        <h2 style="color:#4caf50;margin:0 0 8px">Someone thinks they found ${pet.name}!</h2>
+        <p style="color:#5a3825;margin:0 0 16px">A person on <strong>Lost Pet Finder</strong> has reported finding your pet. Please verify before removing your listing.</p>
+        ${finderContact ? `<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:12px 16px;border-radius:4px;margin-bottom:16px">
+          <strong>Their contact details:</strong><br>${finderContact}
+        </div>` : ''}
+        <p style="color:#5a3825;margin:0 0 16px;font-size:0.9rem">⚠️ Only remove your listing once you have confirmed your pet is safe.</p>
+        <a href="${appUrl ?? ''}" style="display:inline-block;padding:12px 24px;background:#4caf50;color:white;text-decoration:none;border-radius:50px;font-weight:700">View listing →</a>
         <p style="color:#a07050;font-size:0.8rem;margin-top:24px">You received this because you posted this listing.</p>
       </div>`
     } else {

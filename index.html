@@ -161,6 +161,16 @@
 
     h2 { color: var(--accent); font-size: 1.25rem; margin-bottom: 20px; }
 
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      margin: 0 0 20px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      display: inline-block;
+    }
+
     form { display: flex; flex-direction: column; gap: 16px; }
     .field { display: flex; flex-direction: column; gap: 6px; }
     label { font-weight: 600; font-size: 0.9rem; color: var(--text-mid); }
@@ -1252,8 +1262,8 @@
           <p>You need an account to post a missing pet listing.</p>
           <button class="btn-primary" onclick="openAuthModal()">Login / Sign up</button>
         </div>
+        <h2 class="page-title" id="post-form-title">Post a Missing Pet</h2>
         <div class="card" id="post-form-card">
-          <h2 id="post-form-title">Post a Missing Pet</h2>
           <form id="post-form">
             <div class="field">
               <label>What are you posting?</label>
@@ -1331,12 +1341,12 @@
 
       <!-- Browse Missing Pets -->
       <div class="page" id="page-browse">
+        <h2 class="page-title"><span class="live-dot"></span><span id="browse-title">Missing Pets</span></h2>
         <div class="status-tabs">
           <button class="status-tab active" id="tab-missing" onclick="setBrowseStatus('missing')">🔴 Missing</button>
           <button class="status-tab tab-found" id="tab-found" onclick="setBrowseStatus('found')">🟢 Found strays</button>
         </div>
         <div class="browse-header">
-          <h2 style="margin-bottom:0"><span class="live-dot"></span><span id="browse-title">Missing Pets</span></h2>
           <div class="view-toggles">
             <button class="view-toggle active" id="view-list" onclick="setView('list')">☰ List</button>
             <button class="view-toggle" id="view-map" onclick="setView('map')">🗺 Map</button>
@@ -1394,16 +1404,16 @@
 
       <!-- Notifications -->
       <div class="page" id="page-notifs">
+        <h2 class="page-title">Notifications</h2>
         <div class="card">
-          <h2>Notifications</h2>
           <div id="notif-list"></div>
         </div>
       </div>
 
       <!-- Guide: Report Lost Pet -->
       <div class="page" id="page-guide-post">
+        <h2 class="page-title">📋 Animal Reference Guide</h2>
         <div class="card">
-          <h2>📋 Report Lost Pet — Animal Reference Guide</h2>
           <div class="guide-section">
             <h3>🐕 Dog</h3>
             <ul class="guide-list">
@@ -1452,8 +1462,8 @@
 
       <!-- Guide: Browse -->
       <div class="page" id="page-guide-browse">
+        <h2 class="page-title">🔍 Browse — Reference Guide</h2>
         <div class="card">
-          <h2>🔍 Browse Missing Pets — Reference Guide</h2>
           <div class="guide-section">
             <h3>How to Search Effectively</h3>
             <ul class="guide-list">
@@ -1487,8 +1497,8 @@
 
       <!-- Guide: Found Pet -->
       <div class="page" id="page-guide-report">
+        <h2 class="page-title">📍 Report Found Pet — Guide</h2>
         <div class="card">
-          <h2>📍 Report Found Pet — Reference Guide</h2>
           <div class="guide-section">
             <h3>What to Do Immediately</h3>
             <ul class="guide-list">
@@ -2137,9 +2147,9 @@
                 <button class="btn-sighting-submit" onclick="submitSighting('${p.id}')">Add sighting</button>
               </div>
             </div>
-            <button class="btn-green"  onclick="markFound('${p.id}')">I Found This Pet! 🎉</button>
+            <button class="btn-green"  onclick="markFound('${p.id}')">🎉 I Think I Found This Pet</button>
             <button class="btn-flyer"  onclick="generateFlyer('${p.id}')">🖨 Print Flyer</button>
-            ${currentUser && p.user_id === currentUser.id ? `<button class="btn-remove" onclick="removeListing('${p.id}')">✕ Remove listing</button>` : ''}
+            ${currentUser && p.user_id === currentUser.id ? `<button class="btn-remove" onclick="removeListing('${p.id}')">✓ Mark as reunited &amp; remove</button>` : ''}
             <button class="btn-report" onclick="reportListing('${p.id}')">🚩 Report</button>
           </div>`;
         }).join('');
@@ -2149,13 +2159,21 @@
 
       async function markFound(id) {
         const pet = pets.find(p=>p.id===id);
-        const {error} = await db.from('pets').delete().eq('id',id);
-        if (error) { showToast('Could not update listing','info'); return; }
-        notifyOwner('found', id);
-        pets = pets.filter(p=>p.id!==id);
-        renderPets(); if (_mapView) renderMap();
-        addNotif('🎉',`${esc(pet.name)} the ${pet.type} has been found and reunited with their family!`);
-        showToast(`${pet.name} marked as found! 🎉`,'success');
+        if (!pet) return;
+
+        const contact = prompt(`How can the owner reach you?\n(Enter your phone number or email — this will be sent to them)`);
+        if (contact === null) return; // user cancelled
+        if (!contact.trim()) { showToast('Please enter your contact details so the owner can reach you.', 'info'); return; }
+
+        const {error} = await db.from('sightings').insert({
+          pet_id: id,
+          message: `🎉 Someone says they have found ${pet.name}! Contact: ${contact.trim()}`,
+          location: 'See contact details above'
+        });
+        if (error) { showToast('Could not send alert. Please try again.', 'info'); return; }
+
+        notifyOwner('found', id, { finderContact: contact.trim() });
+        showToast(`The owner has been notified. They'll contact you at: ${contact.trim()}`, 'success');
       }
 
       async function fetchImageAsBase64(url) {
