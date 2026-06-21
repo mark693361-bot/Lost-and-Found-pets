@@ -862,6 +862,9 @@
 
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
+    @keyframes flash-border { 0%,100%{box-shadow:none} 40%{box-shadow:0 0 0 4px var(--accent)} }
+    .highlight-flash { animation: flash-border 1.4s ease 2; }
+
     footer {
       text-align: center;
       padding: 20px;
@@ -869,6 +872,64 @@
       font-size: 0.82rem;
       border-top: 1px solid var(--border);
     }
+
+    /* ── Status toggle (post form) ────────────────────────────── */
+    .status-toggle { display: flex; gap: 8px; }
+    .status-opt {
+      flex: 1; padding: 10px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-family: inherit; font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .status-opt.active-missing { border-color: #e53935; background: #ffebee; color: #c62828; }
+    .status-opt.active-found   { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
+
+    /* ── Browse status tabs ────────────────────────────────────── */
+    .status-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .status-tab {
+      flex: 1; padding: 10px;
+      border: 2px solid var(--border);
+      border-radius: 50px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-family: inherit; font-size: 0.9rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .status-tab.active { border-color: var(--accent); background: rgba(232,98,42,0.08); color: var(--accent); }
+    .status-tab.tab-found.active { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; }
+
+    /* ── Alert subscription box ────────────────────────────────── */
+    .alert-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 20px;
+      margin-bottom: 32px;
+    }
+    .alert-box h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .alert-box p  { font-size: 0.83rem; color: var(--text-muted); margin-bottom: 14px; }
+    .alert-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .alert-row input { flex: 1; min-width: 160px; }
+    .btn-alert {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white; border: none; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      white-space: nowrap; transition: opacity 0.15s;
+    }
+    .btn-alert:hover { opacity: 0.88; }
+
+    /* ── Chip / breed badge on card ────────────────────────────── */
+    .chip-badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 600;
+      background: rgba(76,175,80,0.12); color: #2e7d32;
+      border: 1px solid rgba(76,175,80,0.3);
+      border-radius: 50px; padding: 2px 8px; margin-top: 2px;
+    }
+    [data-theme="dark"] .chip-badge { background: rgba(76,175,80,0.18); color: #81c784; border-color: rgba(76,175,80,0.35); }
 
     /* ── Homepage ─────────────────────────────────────────────── */
     #page-home { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; }
@@ -1166,6 +1227,16 @@
           </div>
         </div>
 
+        <div class="alert-box">
+          <h3>📡 Get alerts for missing pets near you</h3>
+          <p>Enter your email and we'll notify you when a pet goes missing in your area.</p>
+          <div class="alert-row">
+            <input id="alert-email" type="email" placeholder="your@email.com" />
+            <button class="btn-alert" onclick="subscribeAlerts()">Get alerts</button>
+          </div>
+          <p id="alert-msg" style="margin-top:10px;margin-bottom:0;font-weight:600;display:none"></p>
+        </div>
+
         <div class="home-cta-banner">
           <h3>Missing a pet? Don't wait.</h3>
           <p>The sooner you post, the sooner your community can help.</p>
@@ -1182,8 +1253,15 @@
           <button class="btn-primary" onclick="openAuthModal()">Login / Sign up</button>
         </div>
         <div class="card" id="post-form-card">
-          <h2>Post a Missing Pet</h2>
+          <h2 id="post-form-title">Post a Missing Pet</h2>
           <form id="post-form">
+            <div class="field">
+              <label>What are you posting?</label>
+              <div class="status-toggle">
+                <button type="button" class="status-opt active-missing" id="st-missing" onclick="setPostStatus('missing')">🔴 My pet is missing</button>
+                <button type="button" class="status-opt" id="st-found"   onclick="setPostStatus('found')">🟢 I found a stray</button>
+              </div>
+            </div>
             <div class="field">
               <label for="animal-type">Animal type</label>
               <select id="animal-type">
@@ -1197,6 +1275,10 @@
             <div class="field">
               <label for="pet-name">Pet name</label>
               <input id="pet-name" type="text" placeholder="e.g. Buddy" />
+            </div>
+            <div class="field">
+              <label for="breed">Breed (optional)</label>
+              <input id="breed" type="text" placeholder="e.g. Labrador Retriever, Domestic Shorthair" />
             </div>
             <div class="field">
               <label for="colour">Colour / markings</label>
@@ -1235,6 +1317,10 @@
               </div>
             </div>
             <div class="field">
+              <label for="microchip">Microchip number (optional)</label>
+              <input id="microchip" type="text" placeholder="e.g. 900123456789012" />
+            </div>
+            <div class="field">
               <label for="contact">Your contact info</label>
               <input id="contact" type="text" placeholder="e.g. 555-0123 or email@example.com" />
             </div>
@@ -1245,8 +1331,12 @@
 
       <!-- Browse Missing Pets -->
       <div class="page" id="page-browse">
+        <div class="status-tabs">
+          <button class="status-tab active" id="tab-missing" onclick="setBrowseStatus('missing')">🔴 Missing</button>
+          <button class="status-tab tab-found" id="tab-found" onclick="setBrowseStatus('found')">🟢 Found strays</button>
+        </div>
         <div class="browse-header">
-          <h2 style="margin-bottom:0"><span class="live-dot"></span>Missing Pets</h2>
+          <h2 style="margin-bottom:0"><span class="live-dot"></span><span id="browse-title">Missing Pets</span></h2>
           <div class="view-toggles">
             <button class="view-toggle active" id="view-list" onclick="setView('list')">☰ List</button>
             <button class="view-toggle" id="view-map" onclick="setView('map')">🗺 Map</button>
@@ -1481,8 +1571,10 @@
       let notifs       = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
       let unread       = parseInt(localStorage.getItem('lpf_unread')   || '0');
       let reported     = new Set(JSON.parse(localStorage.getItem('lpf_reported') || '[]'));
-      let filterType   = '';
-      let filterSearch = '';
+      let filterType    = '';
+      let filterSearch  = '';
+      let filterStatus  = 'missing';
+      let postStatus    = 'missing';
       let nearMeActive = false;
       let userLat      = null;
       let userLng      = null;
@@ -1500,6 +1592,23 @@
       });
 
       loadHomeStats();
+
+      // ── Hash routing — e.g. #pet-abc123 opens that listing ───────────────────
+      (function handleHash() {
+        const m = window.location.hash.match(/^#pet-(.+)$/);
+        if (!m) return;
+        const targetId = m[1];
+        _history = [];
+        _activate('page-browse');
+        const orig = loadAndRenderPets;
+        const oneShot = async () => {
+          await orig();
+          const card = document.getElementById(`card-${targetId}`);
+          if (card) { card.scrollIntoView({behavior:'smooth',block:'center'}); card.classList.add('highlight-flash'); }
+        };
+        loadAndRenderPets = oneShot;
+        setTimeout(() => { loadAndRenderPets = orig; }, 2000);
+      })();
 
       db.auth.onAuthStateChange((_e, session) => {
         currentUser = session?.user || null;
@@ -1825,14 +1934,17 @@
         const q = filterSearch.toLowerCase();
         return pets.filter(p=>{
           if (reported.has(p.id)) return false;
+          const matchStatus = (p.status || 'missing') === filterStatus;
           const matchType   = !filterType || p.type===filterType;
           const matchSearch = !q ||
-            (p.name     && p.name.toLowerCase().includes(q)) ||
-            (p.location && p.location.toLowerCase().includes(q)) ||
-            (p.details  && p.details.toLowerCase().includes(q));
+            (p.name      && p.name.toLowerCase().includes(q)) ||
+            (p.location  && p.location.toLowerCase().includes(q)) ||
+            (p.details   && p.details.toLowerCase().includes(q)) ||
+            (p.breed     && p.breed.toLowerCase().includes(q)) ||
+            (p.microchip && p.microchip.toLowerCase().includes(q));
           const matchDist = !nearMeActive || !userLat || !p.lat ||
             haversine(userLat,userLng,p.lat,p.lng) <= 10;
-          return matchType && matchSearch && matchDist;
+          return matchStatus && matchType && matchSearch && matchDist;
         }).map(p=>{
           if (nearMeActive && userLat && p.lat)
             p._dist = haversine(userLat,userLng,p.lat,p.lng);
@@ -1843,6 +1955,35 @@
           if (nearMeActive && a._dist!=null && b._dist!=null) return a._dist-b._dist;
           return 0;
         });
+      }
+
+      function setBrowseStatus(status) {
+        filterStatus = status;
+        document.getElementById('tab-missing').classList.toggle('active', status==='missing');
+        document.getElementById('tab-found').classList.toggle('active', status==='found');
+        document.getElementById('browse-title').textContent = status==='missing' ? 'Missing Pets' : 'Found Strays';
+        currentPage=1; loadAndRenderPets();
+      }
+
+      function setPostStatus(status) {
+        postStatus = status;
+        document.getElementById('st-missing').className = 'status-opt' + (status==='missing' ? ' active-missing' : '');
+        document.getElementById('st-found').className   = 'status-opt' + (status==='found'   ? ' active-found'   : '');
+        document.getElementById('post-form-title').textContent = status==='missing' ? 'Post a Missing Pet' : 'Post a Found Stray';
+        document.getElementById('post-submit-btn').textContent = status==='missing' ? 'Post Missing Pet'   : 'Post Found Pet';
+      }
+
+      async function subscribeAlerts() {
+        const email = document.getElementById('alert-email').value.trim();
+        const msgEl = document.getElementById('alert-msg');
+        if (!email) { msgEl.style.display='block'; msgEl.style.color='#e53935'; msgEl.textContent='Please enter your email.'; return; }
+        msgEl.style.display='block'; msgEl.style.color='var(--text-muted)'; msgEl.textContent='Saving…';
+        const row = { email };
+        if (userLat) { row.lat=userLat; row.lng=userLng; }
+        const {error} = await db.from('subscribers').insert(row);
+        if (error) { msgEl.style.color='#e53935'; msgEl.textContent='Could not save. Please try again.'; return; }
+        msgEl.style.color='#2e7d32'; msgEl.textContent='You\'re signed up! We\'ll email you when a pet goes missing nearby.';
+        document.getElementById('alert-email').value='';
       }
 
       function setTypeFilter(btn, type) {
@@ -1864,12 +2005,14 @@
       // ── Share ─────────────────────────────────────────────────────────────────
       function sharePet(id) {
         const p = pets.find(x=>x.id===id);
+        const petUrl = `${appUrl()}#pet-${id}`;
         const msg = [
-          `🐾 Missing ${p.type}: ${p.name}`,
-          p.size     ? p.size+' size' : '',
+          `🐾 ${p.status==='found'?'Found stray':'Missing'} ${p.type}: ${p.name}`,
+          p.breed    ? p.breed            : '',
+          p.size     ? p.size+' size'     : '',
           p.location ? `Last seen: ${p.location}` : '',
-          p.contact  ? `Contact: ${p.contact}`    : '',
-          `See all missing pets: ${appUrl()}`
+          p.contact  ? `Contact: ${p.contact}`     : '',
+          petUrl
         ].filter(Boolean).join(' · ');
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
       }
@@ -1967,7 +2110,7 @@
           const hasReward = p.details && p.details.includes('💰');
           const dist    = p._dist != null ? fmtDist(p._dist) : null;
           return `
-          <div class="pet-card${isOld?' old-listing':''}">
+          <div class="pet-card${isOld?' old-listing':''}" id="card-${p.id}">
             ${p.photo_url ? `<img class="pc-photo" src="${esc(p.photo_url)}" alt="${esc(p.name)}" loading="lazy" />` : ''}
             <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
               <span class="species-label">${esc(p.type||'pet')}</span>
@@ -1977,7 +2120,8 @@
             </div>
             <div class="pc-emoji">${EMOJIS[p.type]||'🐾'}</div>
             <div class="pc-name">${esc(p.name)}</div>
-            <div class="pc-meta">${p.size ? esc(p.size[0].toUpperCase()+p.size.slice(1)) : 'Unknown size'}</div>
+            <div class="pc-meta">${p.size ? esc(p.size[0].toUpperCase()+p.size.slice(1)) : 'Unknown size'}${p.breed ? ` · ${esc(p.breed)}` : ''}</div>
+            ${p.microchip ? `<div><span class="chip-badge">💾 Chip: ${esc(p.microchip)}</span></div>` : ''}
             ${p.location ? `<div class="pc-meta">📍 ${esc(p.location)}</div>` : ''}
             ${p.details  ? `<div class="pc-detail">${esc(p.details)}</div>` : ''}
             ${p.contact  ? `<button class="pc-contact" id="contact-${p.id}" onclick="revealContact('${p.id}')">📞 Tap to reveal contact</button>` : ''}
@@ -2201,13 +2345,15 @@
           return;
         }
 
-        const type     = document.getElementById('animal-type').value;
-        const name     = document.getElementById('pet-name').value.trim();
-        const colour   = document.getElementById('colour').value.trim();
-        const size     = document.getElementById('size').value;
-        const details  = document.getElementById('extra-details').value.trim();
-        const reward   = document.getElementById('reward').value.trim();
-        const contact  = document.getElementById('contact').value.trim();
+        const type      = document.getElementById('animal-type').value;
+        const name      = document.getElementById('pet-name').value.trim();
+        const breed     = document.getElementById('breed').value.trim();
+        const colour    = document.getElementById('colour').value.trim();
+        const size      = document.getElementById('size').value;
+        const details   = document.getElementById('extra-details').value.trim();
+        const reward    = document.getElementById('reward').value.trim();
+        const microchip = document.getElementById('microchip').value.trim();
+        const contact   = document.getElementById('contact').value.trim();
         const locEl    = document.getElementById('last-location');
         const location = locEl.value.trim();
 
@@ -2253,9 +2399,11 @@
         const fullDetails = parts.join('\n');
 
         const {error:insertError} = await db.from('pets').insert({
-          type, name, size, details:fullDetails, contact, location, lat, lng, photo_url,
-          user_id: currentUser?.id || null
+          type, name, breed: breed||null, size, details:fullDetails,
+          microchip: microchip||null, contact, location, lat, lng, photo_url,
+          status: postStatus, user_id: currentUser?.id || null
         });
+        if (!insertError) notifyOwner('new_listing', null, { petName:name, petType:type, petLat:lat, petLng:lng, petLocation:location });
 
         btn.disabled=false; btn.textContent='Post Missing Pet';
 
@@ -2343,15 +2491,15 @@
 
       async function notifyOwner(type, petId, extra={}) {
         try {
-          await fetch(`https://exdaerddjzklfgvxombf.supabase.co/functions/v1/send-notification`, {
+          await fetch('https://exdaerddjzklfgvxombf.supabase.co/functions/v1/send-notification', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4ZGFlcmRkanprbGZndnhvbWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ2MjMsImV4cCI6MjA5NTIxMDYyM30.kbTBIu2tHgcW0M1Df7G_S02_kwbBbYQyWp67luJR7Ac`
+              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV4ZGFlcmRkanprbGZndnhvbWJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2MzQ2MjMsImV4cCI6MjA5NTIxMDYyM30.kbTBIu2tHgcW0M1Df7G_S02_kwbBbYQyWp67luJR7Ac'
             },
-            body: JSON.stringify({ type, petId, ...extra })
+            body: JSON.stringify({ type, petId, appUrl: appUrl(), ...extra })
           });
-        } catch (_) { /* non-critical, don't block UI */ }
+        } catch (_) { /* non-critical */ }
       }
 
       async function submitSighting(petId) {
