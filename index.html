@@ -2014,10 +2014,20 @@
 
       function loadMore() { currentPage++; renderPets(); }
 
+      // ── Pet lookup — cache first, then live array, then DB ────────────────────
+      async function lookupPet(id) {
+        let p = petCache.get(id) || pets.find(x=>x.id===id);
+        if (!p) {
+          const {data} = await db.from('pets').select('*').eq('id',id).single();
+          if (data) { petCache.set(id,data); p = data; }
+        }
+        return p;
+      }
+
       // ── Share ─────────────────────────────────────────────────────────────────
-      function sharePet(id) {
-        const p = petCache.get(id) || pets.find(x=>x.id===id);
-        if (!p) { showToast('Please wait for listings to load first.','info'); return; }
+      async function sharePet(id) {
+        const p = await lookupPet(id);
+        if (!p) { showToast('Listing not found.','info'); return; }
         const petUrl = `${appUrl()}#pet-${id}`;
         const msg = [
           `🐾 ${p.status==='found'?'Found stray':'Missing'} ${p.type}: ${p.name}`,
@@ -2031,8 +2041,8 @@
       }
 
       // ── Contact reveal ────────────────────────────────────────────────────────
-      function revealContact(id) {
-        const p  = petCache.get(id) || pets.find(x=>x.id===id);
+      async function revealContact(id) {
+        const p  = await lookupPet(id);
         const el = document.getElementById(`contact-${id}`);
         if (!el || !p) return;
         el.textContent = '📞 ' + p.contact;
@@ -2042,8 +2052,7 @@
 
       // ── Report ────────────────────────────────────────────────────────────────
       function reportListing(id) {
-        const p = petCache.get(id) || pets.find(x=>x.id===id);
-        if (!confirm(`Report this listing for "${p?.name||'this pet'}" as inappropriate or spam?`)) return;
+        if (!confirm(`Report this listing as inappropriate or spam?`)) return;
         reported.add(id);
         saveReported();
         renderPets();
@@ -2051,9 +2060,9 @@
       }
 
       // ── QR Code ───────────────────────────────────────────────────────────────
-      function showQR(id) {
-        const p = petCache.get(id) || pets.find(x=>x.id===id);
-        if (!p) { showToast('Please wait for listings to load first.','info'); return; }
+      async function showQR(id) {
+        const p = await lookupPet(id);
+        if (!p) { showToast('Listing not found.','info'); return; }
         const text = [
           `MISSING PET: ${p.name} (${p.type})`,
           p.details  ? p.details    : '',
@@ -2164,8 +2173,8 @@
       }
 
       async function markFound(id) {
-        const pet = petCache.get(id) || pets.find(p=>p.id===id);
-        if (!pet) return;
+        const pet = await lookupPet(id);
+        if (!pet) { showToast('Listing not found.','info'); return; }
 
         const contact = prompt(`How can the owner reach you?\n(Enter your phone number or email — this will be sent to them)`);
         if (contact === null) return; // user cancelled
@@ -2194,8 +2203,8 @@
       }
 
       async function generateFlyer(id) {
-        const p = petCache.get(id) || pets.find(pet => pet.id === id);
-        if (!p) return;
+        const p = await lookupPet(id);
+        if (!p) { showToast('Listing not found.','info'); return; }
 
         showToast('Generating flyer…', 'info');
 
@@ -2329,8 +2338,8 @@
       }
 
       async function removeListing(id) {
-        const pet = petCache.get(id) || pets.find(p=>p.id===id);
-        if (!pet) { showToast('Please wait for listings to load first.','info'); return; }
+        const pet = await lookupPet(id);
+        if (!pet) { showToast('Listing not found.','info'); return; }
         if (!confirm(`Remove the listing for ${pet.name}?`)) return;
         const {error} = await db.from('pets').delete().eq('id',id);
         if (error) { showToast('Could not remove listing','info'); return; }
