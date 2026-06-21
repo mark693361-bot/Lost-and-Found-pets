@@ -2015,6 +2015,7 @@
       // ── Share ─────────────────────────────────────────────────────────────────
       function sharePet(id) {
         const p = pets.find(x=>x.id===id);
+        if (!p) { showToast('Please wait for listings to load first.','info'); return; }
         const petUrl = `${appUrl()}#pet-${id}`;
         const msg = [
           `🐾 ${p.status==='found'?'Found stray':'Missing'} ${p.type}: ${p.name}`,
@@ -2050,6 +2051,7 @@
       // ── QR Code ───────────────────────────────────────────────────────────────
       function showQR(id) {
         const p = pets.find(x=>x.id===id);
+        if (!p) { showToast('Please wait for listings to load first.','info'); return; }
         const text = [
           `MISSING PET: ${p.name} (${p.type})`,
           p.details  ? p.details    : '',
@@ -2085,10 +2087,11 @@
       // ── Pets ──────────────────────────────────────────────────────────────────
       async function loadAndRenderPets() {
         const grid = document.getElementById('pet-grid');
-        grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
+        const hadPets = pets.length > 0;
+        if (!hadPets) grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⏳</div><p>Loading…</p></div>`;
         const {data,error} = await db.from('pets').select('*').order('created_at',{ascending:false});
         if (error) {
-          grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Could not load listings.</p></div>`;
+          if (!hadPets) grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">⚠️</div><p>Could not load listings.</p></div>`;
           return;
         }
         pets = data||[];
