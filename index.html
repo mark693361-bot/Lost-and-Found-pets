@@ -2429,7 +2429,7 @@
 
         btn.disabled=false; btn.textContent='Post Missing Pet';
 
-        if (insertError) { showToast('Failed to post listing. Please try again.','info'); return; }
+        if (insertError) { showToast(`Error: ${insertError.message}`,'info'); return; }
 
         localStorage.setItem('lpf_last_post', Date.now());
         addNotif(EMOJIS[type]||'🐾',`A missing ${type} named "${esc(name)}" has been posted.`);
