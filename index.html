@@ -1579,6 +1579,7 @@
       const OLD_DAYS  = 14;
 
       let pets         = [];
+      const petCache   = new Map(); // persists across reloads so buttons always work
       let notifs       = JSON.parse(localStorage.getItem('lpf_notifs') || '[]');
       let unread       = parseInt(localStorage.getItem('lpf_unread')   || '0');
       let reported     = new Set(JSON.parse(localStorage.getItem('lpf_reported') || '[]'));
@@ -2015,7 +2016,7 @@
 
       // ── Share ─────────────────────────────────────────────────────────────────
       function sharePet(id) {
-        const p = pets.find(x=>x.id===id);
+        const p = petCache.get(id) || pets.find(x=>x.id===id);
         if (!p) { showToast('Please wait for listings to load first.','info'); return; }
         const petUrl = `${appUrl()}#pet-${id}`;
         const msg = [
@@ -2031,7 +2032,7 @@
 
       // ── Contact reveal ────────────────────────────────────────────────────────
       function revealContact(id) {
-        const p  = pets.find(x=>x.id===id);
+        const p  = petCache.get(id) || pets.find(x=>x.id===id);
         const el = document.getElementById(`contact-${id}`);
         if (!el || !p) return;
         el.textContent = '📞 ' + p.contact;
@@ -2041,7 +2042,7 @@
 
       // ── Report ────────────────────────────────────────────────────────────────
       function reportListing(id) {
-        const p = pets.find(x=>x.id===id);
+        const p = petCache.get(id) || pets.find(x=>x.id===id);
         if (!confirm(`Report this listing for "${p?.name||'this pet'}" as inappropriate or spam?`)) return;
         reported.add(id);
         saveReported();
@@ -2051,7 +2052,7 @@
 
       // ── QR Code ───────────────────────────────────────────────────────────────
       function showQR(id) {
-        const p = pets.find(x=>x.id===id);
+        const p = petCache.get(id) || pets.find(x=>x.id===id);
         if (!p) { showToast('Please wait for listings to load first.','info'); return; }
         const text = [
           `MISSING PET: ${p.name} (${p.type})`,
@@ -2096,6 +2097,7 @@
           return;
         }
         pets = data||[];
+        pets.forEach(p => petCache.set(p.id, p));
         renderPets();
         if (_mapView) renderMap();
       }
@@ -2162,7 +2164,7 @@
       }
 
       async function markFound(id) {
-        const pet = pets.find(p=>p.id===id);
+        const pet = petCache.get(id) || pets.find(p=>p.id===id);
         if (!pet) return;
 
         const contact = prompt(`How can the owner reach you?\n(Enter your phone number or email — this will be sent to them)`);
@@ -2192,7 +2194,7 @@
       }
 
       async function generateFlyer(id) {
-        const p = pets.find(pet => pet.id === id);
+        const p = petCache.get(id) || pets.find(pet => pet.id === id);
         if (!p) return;
 
         showToast('Generating flyer…', 'info');
@@ -2327,7 +2329,8 @@
       }
 
       async function removeListing(id) {
-        const pet = pets.find(p=>p.id===id);
+        const pet = petCache.get(id) || pets.find(p=>p.id===id);
+        if (!pet) { showToast('Please wait for listings to load first.','info'); return; }
         if (!confirm(`Remove the listing for ${pet.name}?`)) return;
         const {error} = await db.from('pets').delete().eq('id',id);
         if (error) { showToast('Could not remove listing','info'); return; }
